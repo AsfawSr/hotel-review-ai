@@ -28,11 +28,12 @@
                         <th>Sentiment</th>
                         <th>Main Topic</th>
                         <th>Submitted</th>
+                        <th></th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:if="${#lists.isEmpty(reviews)}">
-                        <td colspan="5" class="text-center text-muted">No reviews yet.</td>
+                        <td colspan="6" class="text-center text-muted">No reviews yet.</td>
                     </tr>
                     <tr th:each="review : ${reviews}">
                         <td th:text="${review.guestName}">Guest</td>
@@ -45,6 +46,9 @@
                         </td>
                         <td th:text="${review.mainTopic == null ? 'N/A' : review.mainTopic}">N/A</td>
                         <td th:text="${#temporals.format(review.submittedAt, 'yyyy-MM-dd HH:mm')}">2026-04-03</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" th:href="@{/reviews/{id}(id=${review.id})}">View</a>
+                        </td>
                     </tr>
                     </tbody>
                 </table>

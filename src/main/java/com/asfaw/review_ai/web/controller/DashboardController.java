@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -63,5 +64,14 @@ public class DashboardController {
         reviewService.createReview(reviewForm);
         redirectAttributes.addFlashAttribute("submissionSuccess", true);
         return "redirect:/reviews";
+    }
+
+    @GetMapping("/reviews/{id}")
+    public String reviewDetail(@PathVariable("id") Long id, Model model) {
+        ReviewService.ReviewDetail detail = reviewService.getReviewDetail(id);
+        model.addAttribute("review", detail.review());
+        model.addAttribute("policyContext", detail.policyContext());
+        model.addAttribute("ragEnabled", detail.ragEnabled());
+        return "review-detail";
     }
 }

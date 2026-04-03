@@ -2,6 +2,7 @@ package com.asfaw.review_ai.service;
 
 import com.asfaw.review_ai.ai.dto.ReviewAnalysisResult;
 import com.asfaw.review_ai.ai.service.ReviewAnalysisAiService;
+import com.asfaw.review_ai.ai.service.RagContextService;
 import com.asfaw.review_ai.model.entity.Review;
 import com.asfaw.review_ai.model.entity.ReviewAnalysis;
 import com.asfaw.review_ai.model.enums.Sentiment;
@@ -13,10 +14,12 @@ import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -25,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +40,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewAnalysisRepository reviewAnalysisRepository;
     private final ObjectProvider<ReviewAnalysisAiService> reviewAnalysisAiServiceProvider;
+    private final RagContextService ragContextService;
 
     @Transactional
     public Review createReview(ReviewSubmissionRequest request) {
@@ -141,6 +147,18 @@ public class ReviewService {
         return managerResponse;
     }
 
+    @Transactional(readOnly = true)
+    public ReviewDetail getReviewDetail(Long reviewId) {
+        Review review = reviewRepository.findWithAnalysisById(reviewId)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Review not found"));
+
+        List<Document> documents = ragContextService.retrievePolicyContext(review.getReviewText());
+        String policyContext = ragContextService.buildContextBlock(documents);
+        boolean ragEnabled = !documents.isEmpty();
+
+        return new ReviewDetail(review, policyContext, ragEnabled);
+    }
+
     public record DashboardMetrics(
             long totalReviews,
             double averageRating,
@@ -165,5 +183,11 @@ public class ReviewService {
             return new ArrayList<>(topicCounts.values());
         }
     }
-}
 
+    public record ReviewDetail(
+            Review review,
+            String policyContext,
+            boolean ragEnabled
+    ) {
+    }
+}
