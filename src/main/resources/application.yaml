@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: hotel-review-ai
+
+  profiles:
+    default: dev
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/hotel_review_ai}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:Asfawpassword}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+
+  thymeleaf:
+    cache: false
+
+  security:
+    user:
+      name: ${APP_ADMIN_USERNAME:admin}
+      password: ${APP_ADMIN_PASSWORD:admin123}
+      roles: ADMIN
+
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${OLLAMA_CHAT_MODEL:llama3.2}
+          temperature: ${OLLAMA_TEMPERATURE:0.2}
+      embedding:
+        options:
+          model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+
+    vectorstore:
+      pgvector:
+        index-type: hnsw
+        distance-type: cosine_distance
+        dimensions: ${PGVECTOR_DIMENSIONS:768}
+        initialize-schema: true
+        remove-existing-vector-store-table: false
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.ai: INFO
+    com.asfaw.review_ai: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
