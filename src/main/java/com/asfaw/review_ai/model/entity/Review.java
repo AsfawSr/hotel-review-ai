@@ -10,11 +10,17 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Index;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.CascadeType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "reviews", indexes = {
@@ -29,12 +35,18 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
+    @Size(max = 100)
     @Column(name = "guest_name", nullable = false, length = 100)
     private String guestName;
 
+    @NotBlank
+    @Size(max = 4000)
     @Column(name = "review_text", nullable = false, length = 4000)
     private String reviewText;
 
+    @Min(1)
+    @Max(5)
     @Column(name = "rating")
     private Integer rating;
 
@@ -44,7 +56,7 @@ public class Review {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @OneToOne(mappedBy = "review")
+    @OneToOne(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private ReviewAnalysis analysis;
 
     @PrePersist
@@ -59,4 +71,3 @@ public class Review {
         this.updatedAt = Instant.now();
     }
 }
-

@@ -18,6 +18,11 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,14 +45,18 @@ public class ReviewAnalysis {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(optional = false)
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "review_id", nullable = false, unique = true)
     private Review review;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "sentiment", nullable = false, length = 20)
     private Sentiment sentiment;
 
+    @NotNull
+    @Min(0)
+    @Max(100)
     @Column(name = "sentiment_score", nullable = false)
     private Integer sentimentScore;
 
@@ -57,10 +66,13 @@ public class ReviewAnalysis {
     @Column(name = "topic", nullable = false, length = 40)
     private Set<Topic> topics = new LinkedHashSet<>();
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "main_topic", nullable = false, length = 40)
     private Topic mainTopic;
 
+    @NotBlank
+    @Size(max = 4000)
     @Column(name = "manager_response", nullable = false, length = 4000)
     private String managerResponse;
 
@@ -82,4 +94,3 @@ public class ReviewAnalysis {
         this.updatedAt = Instant.now();
     }
 }
-

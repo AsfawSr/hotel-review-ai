@@ -13,6 +13,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -36,12 +38,18 @@ public class HotelPolicyDocument {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
+    @Size(max = 200)
     @Column(name = "title", nullable = false, length = 200)
     private String title;
 
+    @NotBlank
+    @Size(max = 80)
     @Column(name = "category", nullable = false, length = 80)
     private String category;
 
+    @NotBlank
+    @Size(max = 8000)
     @Column(name = "content", nullable = false, length = 8000)
     private String content;
 
@@ -50,6 +58,7 @@ public class HotelPolicyDocument {
     @Column(name = "tag", nullable = false, length = 60)
     private Set<String> tags = new LinkedHashSet<>();
 
+    @Size(max = 200)
     @Column(name = "source", length = 200)
     private String source;
 
@@ -77,4 +86,3 @@ public class HotelPolicyDocument {
         this.updatedAt = Instant.now();
     }
 }
-
