@@ -29,13 +29,16 @@ spring:
       password: ${APP_ADMIN_PASSWORD:admin123}
       roles: ADMIN
 
-  spring:
-    ai:
-      ollama:
-        chat:
-          options:
-            model: llama3.2:latest
-
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${OLLAMA_CHAT_MODEL:llama3.2:latest}
+          temperature: ${OLLAMA_TEMPERATURE:0.2}
+      embedding:
+        options:
+          model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
 
     vectorstore:
       pgvector:

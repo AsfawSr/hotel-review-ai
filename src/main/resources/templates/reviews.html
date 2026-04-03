@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/base :: layout(~{::title}, ~{::section}, ~{::script})}">
+      th:replace="~{layout/base :: layout(pageTitle=~{::title}, content=~{::section}, pageScripts=~{::script})}">
 <head>
     <title>Reviews</title>
 </head>
