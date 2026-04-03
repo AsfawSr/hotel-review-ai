@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout (pageTitle, content, pageScripts)">
 <head>
-    <th:block th:replace="fragments/head :: head"></th:block>
+    <th:block th:replace="~{fragments/head :: head}"></th:block>
     <title th:replace="${pageTitle}">HotelReviewAI</title>
 </head>
 <body class="bg-light">
-<th:block th:replace="fragments/navbar :: navbar"></th:block>
+<th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
 
 <div class="container-fluid">
     <div class="row">
@@ -15,10 +15,9 @@
     </div>
 </div>
 
-<th:block th:replace="fragments/footer :: footer"></th:block>
+<th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-2b4Y1Z5eZK3y9U8Wq6cGf8U6mE7bQ2wG2h9M2wKxw7qRr6V4Qj6MZkW3r1LGcZ8M" crossorigin="anonymous"></script>
 <th:block th:replace="${pageScripts}"></th:block>
 </body>
 </html>
-
