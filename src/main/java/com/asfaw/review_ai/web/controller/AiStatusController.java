@@ -18,4 +18,3 @@ public class AiStatusController {
         return "ai-status";
     }
 }
-

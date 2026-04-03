@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Locale;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -111,7 +112,7 @@ public class ReviewService {
     private ReviewAnalysis generateAnalysisIfAvailable(Review review) {
         ReviewAnalysisAiService aiService = reviewAnalysisAiServiceProvider.getIfAvailable();
         if (aiService == null) {
-            return null;
+            return buildFallbackAnalysis(review);
         }
 
         try {
@@ -119,7 +120,7 @@ public class ReviewService {
             return mapAnalysis(result);
         } catch (RuntimeException ex) {
             log.warn("AI analysis failed for review from {}", review.getGuestName(), ex);
-            return null;
+            return buildFallbackAnalysis(review);
         }
     }
 
@@ -157,6 +158,75 @@ public class ReviewService {
         boolean ragEnabled = !documents.isEmpty();
 
         return new ReviewDetail(review, policyContext, ragEnabled);
+    }
+
+    private ReviewAnalysis buildFallbackAnalysis(Review review) {
+        String text = review.getReviewText() == null ? "" : review.getReviewText().toLowerCase(Locale.ENGLISH);
+        int score = estimateSentimentScore(text, review.getRating());
+        Sentiment sentiment = score >= 65 ? Sentiment.POSITIVE : (score <= 35 ? Sentiment.NEGATIVE : Sentiment.NEUTRAL);
+
+        Set<Topic> topics = detectTopics(text);
+        if (topics.isEmpty()) {
+            topics = Set.of(Topic.OTHER);
+        }
+
+        ReviewAnalysis analysis = new ReviewAnalysis();
+        analysis.setSentiment(sentiment);
+        analysis.setSentimentScore(score);
+        analysis.setTopics(topics);
+        analysis.setMainTopic(topics.iterator().next());
+        analysis.setManagerResponse(defaultManagerResponse(null));
+        return analysis;
+    }
+
+    private int estimateSentimentScore(String text, Integer rating) {
+        if (rating != null) {
+            return Math.min(100, Math.max(0, rating * 20));
+        }
+
+        int score = 50;
+        if (containsAny(text, "great", "excellent", "amazing", "friendly", "clean", "love", "comfortable")) {
+            score += 20;
+        }
+        if (containsAny(text, "bad", "dirty", "rude", "noisy", "uncomfortable", "slow", "terrible")) {
+            score -= 20;
+        }
+        return Math.min(100, Math.max(0, score));
+    }
+
+    private Set<Topic> detectTopics(String text) {
+        Set<Topic> topics = new LinkedHashSet<>();
+        if (containsAny(text, "clean", "dirty", "hygiene")) {
+            topics.add(Topic.CLEANLINESS);
+        }
+        if (containsAny(text, "staff", "service", "friendly", "rude")) {
+            topics.add(Topic.STAFF);
+        }
+        if (containsAny(text, "location", "near", "distance", "area")) {
+            topics.add(Topic.LOCATION);
+        }
+        if (containsAny(text, "amenities", "pool", "spa", "gym", "wifi")) {
+            topics.add(Topic.AMENITIES);
+        }
+        if (containsAny(text, "value", "price", "cost", "expensive", "cheap")) {
+            topics.add(Topic.VALUE);
+        }
+        if (containsAny(text, "food", "breakfast", "restaurant", "dining")) {
+            topics.add(Topic.FOOD);
+        }
+        if (containsAny(text, "noise", "noisy", "quiet")) {
+            topics.add(Topic.NOISE);
+        }
+        return topics;
+    }
+
+    private boolean containsAny(String text, String... keywords) {
+        for (String keyword : keywords) {
+            if (text.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public record DashboardMetrics(
