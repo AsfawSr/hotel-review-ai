@@ -48,6 +48,16 @@ spring:
         initialize-schema: false
         remove-existing-vector-store-table: false
 
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
+
+app:
+  rag:
+    enabled: false
+    top-k: 5
+    similarity-threshold: 0.7
+
 server:
   port: ${SERVER_PORT:8080}
 

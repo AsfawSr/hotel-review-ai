@@ -31,3 +31,6 @@ mvnw.cmd -q test
 mvnw.cmd spring-boot:run
 ```
 
+## RAG Setup Note
+
+Pgvector auto-configuration is disabled by default to prevent startup failures when the extension is not installed. Enable it by removing the exclude in `src/main/resources/application.yaml` and setting `app.rag.enabled=true`.
