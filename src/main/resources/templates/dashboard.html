@@ -71,29 +71,35 @@
 
 <script src="/webjars/chart.js/chart.umd.js"></script>
 <script th:inline="javascript">
+    const sentimentLabels = /*[[${sentimentLabels}]]*/ ['POSITIVE', 'NEUTRAL', 'NEGATIVE'];
+    const sentimentData = /*[[${sentimentData}]]*/ [0, 0, 0];
+
     const sentimentChartElement = document.getElementById('sentimentChart');
     if (sentimentChartElement) {
         new Chart(sentimentChartElement, {
             type: 'doughnut',
             data: {
-                labels: ['Positive', 'Neutral', 'Negative'],
+                labels: sentimentLabels,
                 datasets: [{
-                    data: [0, 0, 0],
+                    data: sentimentData,
                     backgroundColor: ['#198754', '#6c757d', '#dc3545']
                 }]
             }
         });
     }
 
+    const topicLabels = /*[[${topicLabels}]]*/ ['CLEANLINESS', 'STAFF', 'LOCATION', 'AMENITIES', 'VALUE'];
+    const topicData = /*[[${topicData}]]*/ [0, 0, 0, 0, 0];
+
     const topicChartElement = document.getElementById('topicChart');
     if (topicChartElement) {
         new Chart(topicChartElement, {
             type: 'bar',
             data: {
-                labels: ['Cleanliness', 'Staff', 'Location', 'Amenities', 'Value'],
+                labels: topicLabels,
                 datasets: [{
                     label: 'Mentions',
-                    data: [0, 0, 0, 0, 0],
+                    data: topicData,
                     backgroundColor: '#0d6efd'
                 }]
             },

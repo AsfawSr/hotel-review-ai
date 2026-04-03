@@ -34,3 +34,11 @@ mvnw.cmd spring-boot:run
 ## RAG Setup Note
 
 Pgvector auto-configuration is disabled by default to prevent startup failures when the extension is not installed. Enable it by removing the exclude in `src/main/resources/application.yaml` and setting `app.rag.enabled=true`.
+
+## Web UI
+
+- Dashboard: `http://localhost:8080/dashboard`
+- Reviews: `http://localhost:8080/reviews`
+- Submit review: `http://localhost:8080/reviews/submit`
+
+Reviews run AI analysis automatically when the chat model is configured. If AI is disabled, the review is still saved and marked as Pending.

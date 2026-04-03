@@ -11,7 +11,10 @@
             <h1 class="h3 mb-1">Guest Reviews</h1>
             <p class="text-muted mb-0">Browse reviews and AI insights.</p>
         </div>
-        <div class="text-muted">Filters: <span th:text="${filters.sentiment}">All</span> / <span th:text="${filters.topic}">All</span></div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-muted">Filters: <span th:text="${filters.sentiment}">All</span> / <span th:text="${filters.topic}">All</span></div>
+            <a class="btn btn-sm btn-primary" th:href="@{/reviews/submit}">Submit Review</a>
+        </div>
     </div>
 
     <div class="card shadow-sm">
@@ -25,12 +28,23 @@
                         <th>Sentiment</th>
                         <th>Main Topic</th>
                         <th>Submitted</th>
-                        <th></th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:if="${#lists.isEmpty(reviews)}">
-                        <td colspan="6" class="text-center text-muted">No reviews yet.</td>
+                        <td colspan="5" class="text-center text-muted">No reviews yet.</td>
+                    </tr>
+                    <tr th:each="review : ${reviews}">
+                        <td th:text="${review.guestName}">Guest</td>
+                        <td th:text="${review.rating == null ? 'N/A' : review.rating}">N/A</td>
+                        <td>
+                            <span th:if="${review.sentiment == null}" class="badge text-bg-secondary">Pending</span>
+                            <span th:if="${review.sentiment != null}" class="badge"
+                                  th:classappend="${review.sentiment.name() == 'POSITIVE' ? ' text-bg-success' : (review.sentiment.name() == 'NEGATIVE' ? ' text-bg-danger' : ' text-bg-warning') }"
+                                  th:text="${review.sentiment}">NEUTRAL</span>
+                        </td>
+                        <td th:text="${review.mainTopic == null ? 'N/A' : review.mainTopic}">N/A</td>
+                        <td th:text="${#temporals.format(review.submittedAt, 'yyyy-MM-dd HH:mm')}">2026-04-03</td>
                     </tr>
                     </tbody>
                 </table>
