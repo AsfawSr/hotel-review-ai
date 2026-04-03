@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="layout/base :: layout(~{::title}, ~{::section}, ~{::script})">
+<head>
+    <title>Reviews</title>
+</head>
+<body>
+<section>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Guest Reviews</h1>
+            <p class="text-muted mb-0">Browse reviews and AI insights.</p>
+        </div>
+        <div class="text-muted">Filters: <span th:text="${filters.sentiment}">All</span> / <span th:text="${filters.topic}">All</span></div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Guest</th>
+                        <th>Rating</th>
+                        <th>Sentiment</th>
+                        <th>Main Topic</th>
+                        <th>Submitted</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(reviews)}">
+                        <td colspan="6" class="text-center text-muted">No reviews yet.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script></script>
+</body>
+</html>
+

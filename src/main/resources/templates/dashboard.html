@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="layout/base :: layout(~{::title}, ~{::section}, ~{::script})">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+<section>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Review Dashboard</h1>
+            <p class="text-muted mb-0">Snapshot of guest feedback and AI analysis.</p>
+        </div>
+        <div class="text-muted">Last updated: <span th:text="${lastUpdated}">2026-04-03</span></div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted">Total Reviews</div>
+                    <div class="display-6" th:text="${totalReviews}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted">Average Score</div>
+                    <div class="display-6" th:text="${averageScore}">0.0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted">Most Common Topic</div>
+                    <div class="h4" th:text="${mostCommonTopic}">N/A</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted">Open Actions</div>
+                    <div class="display-6">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h6">Sentiment Distribution</h2>
+                    <canvas id="sentimentChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h6">Topic Frequency</h2>
+                    <canvas id="topicChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="/webjars/chart.js/chart.umd.js"></script>
+<script th:inline="javascript">
+    const sentimentChartElement = document.getElementById('sentimentChart');
+    if (sentimentChartElement) {
+        new Chart(sentimentChartElement, {
+            type: 'doughnut',
+            data: {
+                labels: ['Positive', 'Neutral', 'Negative'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: ['#198754', '#6c757d', '#dc3545']
+                }]
+            }
+        });
+    }
+
+    const topicChartElement = document.getElementById('topicChart');
+    if (topicChartElement) {
+        new Chart(topicChartElement, {
+            type: 'bar',
+            data: {
+                labels: ['Cleanliness', 'Staff', 'Location', 'Amenities', 'Value'],
+                datasets: [{
+                    label: 'Mentions',
+                    data: [0, 0, 0, 0, 0],
+                    backgroundColor: '#0d6efd'
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>
+
