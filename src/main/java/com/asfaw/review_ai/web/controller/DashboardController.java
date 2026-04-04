@@ -1,6 +1,7 @@
 package com.asfaw.review_ai.web.controller;
 
 import com.asfaw.review_ai.service.ReviewService;
+import com.asfaw.review_ai.service.ReviewAnalysisProcessingService;
 import com.asfaw.review_ai.web.dto.ReviewListItem;
 import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
 import jakarta.validation.Valid;
@@ -26,6 +27,7 @@ public class DashboardController {
     private static final List<Integer> ALLOWED_PAGE_SIZES = List.of(10, 20, 50);
 
     private final ReviewService reviewService;
+    private final ReviewAnalysisProcessingService reviewAnalysisProcessingService;
 
     @GetMapping("/")
     public String home() {
@@ -89,9 +91,20 @@ public class DashboardController {
             return "submit-review";
         }
 
-        reviewService.createReview(reviewForm);
+        Long reviewId = reviewService.createReview(reviewForm).getId();
+        reviewAnalysisProcessingService.processReviewAsync(reviewId);
         redirectAttributes.addFlashAttribute("submissionSuccess", true);
         return "redirect:/reviews";
+    }
+
+    @PostMapping("/reviews/{id}/retry")
+    public String retryAnalysis(@PathVariable("id") Long id,
+                                @RequestParam(name = "redirect", defaultValue = "/reviews") String redirectPath,
+                                RedirectAttributes redirectAttributes) {
+        Long reviewId = reviewService.queueRetry(id).getId();
+        reviewAnalysisProcessingService.processReviewAsync(reviewId);
+        redirectAttributes.addFlashAttribute("retryQueued", true);
+        return "redirect:" + redirectPath;
     }
 
     @GetMapping("/reviews/{id}")

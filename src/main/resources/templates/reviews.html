@@ -26,6 +26,13 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
+            <div class="alert alert-success mb-3" th:if="${submissionSuccess}">
+                Review submitted. AI analysis has been queued and will appear shortly.
+            </div>
+            <div class="alert alert-info mb-3" th:if="${retryQueued}">
+                Analysis retry queued.
+            </div>
+
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <small class="text-muted" th:text="'Total reviews: ' + ${totalElements}">Total reviews: 0</small>
                 <small class="text-muted" th:text="'Page ' + (${totalPages == 0 ? 0 : currentPage + 1}) + ' of ' + ${totalPages}">Page 0 of 0</small>
@@ -37,6 +44,7 @@
                     <tr>
                         <th>Guest</th>
                         <th>Rating</th>
+                        <th>AI Status</th>
                         <th>Sentiment</th>
                         <th>Main Topic</th>
                         <th>Submitted</th>
@@ -45,20 +53,32 @@
                     </thead>
                     <tbody>
                     <tr th:if="${#lists.isEmpty(reviews)}">
-                        <td colspan="6" class="text-center text-muted">No reviews yet.</td>
+                        <td colspan="7" class="text-center text-muted">No reviews yet.</td>
                     </tr>
                     <tr th:each="review : ${reviews}">
                         <td th:text="${review.guestName}">Guest</td>
                         <td th:text="${review.rating == null ? 'N/A' : review.rating}">N/A</td>
                         <td>
-                            <span th:if="${review.sentiment == null}" class="badge text-bg-secondary">Pending</span>
+                            <span class="badge text-bg-secondary" th:if="${review.analysisStatus == null || review.analysisStatus.name() == 'PENDING'}">PENDING</span>
+                            <span class="badge text-bg-info" th:if="${review.analysisStatus != null && review.analysisStatus.name() == 'PROCESSING'}">PROCESSING</span>
+                            <span class="badge text-bg-success" th:if="${review.analysisStatus != null && review.analysisStatus.name() == 'COMPLETED'}">COMPLETED</span>
+                            <span class="badge text-bg-danger" th:if="${review.analysisStatus != null && review.analysisStatus.name() == 'FAILED'}">FAILED</span>
+                        </td>
+                        <td>
+                            <span th:if="${review.sentiment == null}" class="badge text-bg-secondary">N/A</span>
                             <span th:if="${review.sentiment != null}" class="badge"
                                   th:classappend="${review.sentiment.name() == 'POSITIVE' ? ' text-bg-success' : (review.sentiment.name() == 'NEGATIVE' ? ' text-bg-danger' : ' text-bg-warning') }"
                                   th:text="${review.sentiment}">NEUTRAL</span>
                         </td>
                         <td th:text="${review.mainTopic == null ? 'N/A' : review.mainTopic}">N/A</td>
                         <td th:text="${#temporals.format(review.submittedAt, 'yyyy-MM-dd HH:mm')}">2026-04-03</td>
-                        <td class="text-end">
+                        <td class="text-end d-flex justify-content-end gap-2">
+                            <form th:if="${review.analysisStatus != null && review.analysisStatus.name() == 'FAILED'}"
+                                  th:action="@{/reviews/{id}/retry(id=${review.id})}" method="post" class="d-inline">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <input type="hidden" name="redirect" th:value="@{/reviews(page=${currentPage},size=${pageSize})}" />
+                                <button class="btn btn-sm btn-outline-warning" type="submit">Retry</button>
+                            </form>
                             <a class="btn btn-sm btn-outline-primary" th:href="@{/reviews/{id}(id=${review.id})}">View</a>
                         </td>
                     </tr>

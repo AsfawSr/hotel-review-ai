@@ -1,10 +1,8 @@
 package com.asfaw.review_ai.service;
 
-import com.asfaw.review_ai.ai.dto.ReviewAnalysisResult;
-import com.asfaw.review_ai.ai.service.ReviewAnalysisAiService;
 import com.asfaw.review_ai.ai.service.RagContextService;
 import com.asfaw.review_ai.model.entity.Review;
-import com.asfaw.review_ai.model.entity.ReviewAnalysis;
+import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
 import com.asfaw.review_ai.repository.ReviewAnalysisRepository;
@@ -12,23 +10,17 @@ import com.asfaw.review_ai.repository.ReviewRepository;
 import com.asfaw.review_ai.web.dto.ReviewListItem;
 import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Locale;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -36,11 +28,9 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RequiredArgsConstructor
 public class ReviewService {
 
-    private static final Logger log = LoggerFactory.getLogger(ReviewService.class);
 
     private final ReviewRepository reviewRepository;
     private final ReviewAnalysisRepository reviewAnalysisRepository;
-    private final ObjectProvider<ReviewAnalysisAiService> reviewAnalysisAiServiceProvider;
     private final RagContextService ragContextService;
 
     @Transactional
@@ -49,13 +39,25 @@ public class ReviewService {
         review.setGuestName(request.guestName());
         review.setReviewText(request.reviewText());
         review.setRating(request.rating());
+        review.setAnalysisStatus(AnalysisStatus.PENDING);
+        review.setAnalysisError(null);
+        review.setAnalysisUpdatedAt(Instant.now());
 
-        ReviewAnalysis analysis = generateAnalysisIfAvailable(review);
-        if (analysis != null) {
-            review.setAnalysis(analysis);
-            analysis.setReview(review);
+        return reviewRepository.save(review);
+    }
+
+    @Transactional
+    public Review queueRetry(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Review not found"));
+
+        if (review.getAnalysisStatus() == AnalysisStatus.PROCESSING) {
+            return review;
         }
 
+        review.setAnalysisStatus(AnalysisStatus.PENDING);
+        review.setAnalysisError(null);
+        review.setAnalysisUpdatedAt(Instant.now());
         return reviewRepository.save(review);
     }
 
@@ -76,10 +78,16 @@ public class ReviewService {
     }
 
     private ReviewListItem toReviewListItem(Review review) {
+        AnalysisStatus status = review.getAnalysisStatus();
+        if (status == null) {
+            status = review.getAnalysis() == null ? AnalysisStatus.PENDING : AnalysisStatus.COMPLETED;
+        }
+
         return new ReviewListItem(
                 review.getId(),
                 review.getGuestName(),
                 review.getRating(),
+                status,
                 review.getAnalysis() == null ? null : review.getAnalysis().getSentiment(),
                 review.getAnalysis() == null ? null : review.getAnalysis().getMainTopic(),
                 review.getSubmittedAt()
@@ -146,49 +154,14 @@ public class ReviewService {
         return rating == null ? "N/A" : rating.toString();
     }
 
-    private ReviewAnalysis generateAnalysisIfAvailable(Review review) {
-        ReviewAnalysisAiService aiService = reviewAnalysisAiServiceProvider.getIfAvailable();
-        if (aiService == null) {
-            return buildFallbackAnalysis(review);
-        }
-
-        try {
-            ReviewAnalysisResult result = aiService.analyzeReview(review);
-            return mapAnalysis(result);
-        } catch (RuntimeException ex) {
-            log.warn("AI analysis failed for review from {}", review.getGuestName(), ex);
-            return buildFallbackAnalysis(review);
-        }
-    }
-
-    private ReviewAnalysis mapAnalysis(ReviewAnalysisResult result) {
-        ReviewAnalysis analysis = new ReviewAnalysis();
-        analysis.setSentiment(result.sentiment() == null ? Sentiment.NEUTRAL : result.sentiment());
-        analysis.setSentimentScore(result.sentimentScore() == null ? 50 : result.sentimentScore());
-        analysis.setManagerResponse(defaultManagerResponse(result.managerResponse()));
-
-        Set<Topic> topics = result.topics() == null ? Set.of(Topic.OTHER) : new LinkedHashSet<>(result.topics());
-        if (topics.isEmpty()) {
-            topics = Set.of(Topic.OTHER);
-        }
-        analysis.setTopics(topics);
-
-        Topic mainTopic = result.mainTopic() == null ? topics.iterator().next() : result.mainTopic();
-        analysis.setMainTopic(mainTopic);
-        return analysis;
-    }
-
-    private String defaultManagerResponse(String managerResponse) {
-        if (managerResponse == null || managerResponse.isBlank()) {
-            return "Thank you for your feedback. We appreciate you taking the time to share your experience and will use it to improve.";
-        }
-        return managerResponse;
-    }
-
     @Transactional(readOnly = true)
     public ReviewDetail getReviewDetail(Long reviewId) {
         Review review = reviewRepository.findWithAnalysisById(reviewId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Review not found"));
+
+        if (review.getAnalysisStatus() == null) {
+            review.setAnalysisStatus(review.getAnalysis() == null ? AnalysisStatus.PENDING : AnalysisStatus.COMPLETED);
+        }
 
         // Ensure lazy collections needed by Thymeleaf are loaded before transaction ends.
         if (review.getAnalysis() != null) {
@@ -200,111 +173,6 @@ public class ReviewService {
         boolean ragEnabled = !documents.isEmpty();
 
         return new ReviewDetail(review, policyContext, ragEnabled);
-    }
-
-    private ReviewAnalysis buildFallbackAnalysis(Review review) {
-        String text = review.getReviewText() == null ? "" : review.getReviewText().toLowerCase(Locale.ENGLISH);
-        int score = estimateSentimentScore(text, review.getRating());
-        Sentiment sentiment = score >= 65 ? Sentiment.POSITIVE : (score <= 35 ? Sentiment.NEGATIVE : Sentiment.NEUTRAL);
-
-        Set<Topic> topics = detectTopics(text);
-        if (topics.isEmpty()) {
-            topics = Set.of(Topic.OTHER);
-        }
-
-        ReviewAnalysis analysis = new ReviewAnalysis();
-        analysis.setSentiment(sentiment);
-        analysis.setSentimentScore(score);
-        analysis.setTopics(topics);
-        analysis.setMainTopic(topics.iterator().next());
-        analysis.setManagerResponse(defaultManagerResponse(null));
-        return analysis;
-    }
-
-    private int estimateSentimentScore(String text, Integer rating) {
-        int ratingScore = rating == null ? 50 : Math.min(100, Math.max(0, rating * 20));
-        int textScore = estimateTextOnlyScore(text);
-
-        if (rating == null) {
-            return textScore;
-        }
-
-        boolean strongNegativeText = containsAny(text,
-                "don't like", "dont like", "didn't like", "not good", "never again", "terrible", "awful", "worst");
-        boolean strongPositiveText = containsAny(text,
-                "really liked", "loved", "excellent", "amazing", "very happy", "highly recommend", "great stay");
-
-        int blended = (int) Math.round((ratingScore * 0.55) + (textScore * 0.45));
-
-        // If text strongly contradicts rating, prioritize what the guest actually wrote.
-        if (strongNegativeText && rating >= 4) {
-            blended = Math.min(40, (int) Math.round((ratingScore * 0.35) + (textScore * 0.65)));
-        } else if (strongPositiveText && rating <= 2) {
-            blended = Math.max(60, (int) Math.round((ratingScore * 0.35) + (textScore * 0.65)));
-        }
-
-        return Math.min(100, Math.max(0, blended));
-    }
-
-    private int estimateTextOnlyScore(String text) {
-        int score = 50;
-
-        score += 10 * countMatches(text, "great", "excellent", "amazing", "friendly", "clean", "love", "comfortable", "happy");
-        score -= 10 * countMatches(text, "bad", "dirty", "rude", "noisy", "uncomfortable", "slow", "terrible", "hate", "poor");
-
-        if (containsAny(text, "don't like", "dont like", "didn't like", "not good", "never again", "worst")) {
-            score -= 25;
-        }
-        if (containsAny(text, "really liked", "loved", "highly recommend", "very satisfied")) {
-            score += 20;
-        }
-
-        return Math.min(100, Math.max(0, score));
-    }
-
-    private int countMatches(String text, String... keywords) {
-        int count = 0;
-        for (String keyword : keywords) {
-            if (text.contains(keyword)) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private Set<Topic> detectTopics(String text) {
-        Set<Topic> topics = new LinkedHashSet<>();
-        if (containsAny(text, "clean", "dirty", "hygiene")) {
-            topics.add(Topic.CLEANLINESS);
-        }
-        if (containsAny(text, "staff", "service", "friendly", "rude")) {
-            topics.add(Topic.STAFF);
-        }
-        if (containsAny(text, "location", "near", "distance", "area")) {
-            topics.add(Topic.LOCATION);
-        }
-        if (containsAny(text, "amenities", "pool", "spa", "gym", "wifi")) {
-            topics.add(Topic.AMENITIES);
-        }
-        if (containsAny(text, "value", "price", "cost", "expensive", "cheap")) {
-            topics.add(Topic.VALUE);
-        }
-        if (containsAny(text, "food", "breakfast", "restaurant", "dining")) {
-            topics.add(Topic.FOOD);
-        }
-        if (containsAny(text, "noise", "noisy", "quiet")) {
-            topics.add(Topic.NOISE);
-        }
-        return topics;
-    }
-
-    private boolean containsAny(String text, String... keywords) {
-        for (String keyword : keywords) {
-            if (text.contains(keyword)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public record DashboardMetrics(

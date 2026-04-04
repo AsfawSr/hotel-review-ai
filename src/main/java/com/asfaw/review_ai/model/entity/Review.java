@@ -1,5 +1,6 @@
 package com.asfaw.review_ai.model.entity;
 
+import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +13,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Index;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,7 +27,8 @@ import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "reviews", indexes = {
-        @Index(name = "idx_reviews_submitted_at", columnList = "submitted_at")
+        @Index(name = "idx_reviews_submitted_at", columnList = "submitted_at"),
+        @Index(name = "idx_reviews_analysis_status", columnList = "analysis_status")
 })
 @Getter
 @Setter
@@ -50,6 +54,16 @@ public class Review {
     @Column(name = "rating")
     private Integer rating;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "analysis_status", nullable = false, length = 20)
+    private AnalysisStatus analysisStatus;
+
+    @Column(name = "analysis_error", length = 1000)
+    private String analysisError;
+
+    @Column(name = "analysis_updated_at")
+    private Instant analysisUpdatedAt;
+
     @Column(name = "submitted_at", nullable = false, updatable = false)
     private Instant submittedAt;
 
@@ -64,6 +78,10 @@ public class Review {
         Instant now = Instant.now();
         this.submittedAt = now;
         this.updatedAt = now;
+        if (this.analysisStatus == null) {
+            this.analysisStatus = AnalysisStatus.PENDING;
+        }
+        this.analysisUpdatedAt = now;
     }
 
     @PreUpdate
