@@ -11,7 +11,11 @@
             <h1 class="h3 mb-1">Review Dashboard</h1>
             <p class="text-muted mb-0">Snapshot of guest feedback and AI analysis.</p>
         </div>
-        <div class="text-muted">Last updated: <span th:text="${lastUpdated}">2026-04-03</span></div>
+        <div class="d-flex align-items-center gap-2">
+            <a class="btn btn-sm btn-outline-primary" th:href="@{/ai/status}">AI Status</a>
+            <a class="btn btn-sm btn-primary" th:href="@{/reviews}">View Reviews</a>
+            <div class="text-muted ms-2">Last updated: <span th:text="${lastUpdated}">2026-04-03</span></div>
+        </div>
     </div>
 
     <div class="row g-3 mb-4">

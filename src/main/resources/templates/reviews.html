@@ -13,6 +13,13 @@
         </div>
         <div class="d-flex align-items-center gap-3">
             <div class="text-muted">Filters: <span th:text="${filters.sentiment}">All</span> / <span th:text="${filters.topic}">All</span></div>
+            <form th:action="@{/reviews}" method="get" class="d-flex align-items-center gap-2">
+                <label for="size" class="small text-muted mb-0">Per page</label>
+                <input type="hidden" name="page" value="0" />
+                <select id="size" name="size" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option th:each="s : ${allowedPageSizes}" th:value="${s}" th:text="${s}" th:selected="${s == pageSize}">10</option>
+                </select>
+            </form>
             <a class="btn btn-sm btn-primary" th:href="@{/reviews/submit}">Submit Review</a>
         </div>
     </div>

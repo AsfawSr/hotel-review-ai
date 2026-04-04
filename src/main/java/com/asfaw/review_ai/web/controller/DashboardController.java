@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
 public class DashboardController {
+
+    private static final List<Integer> ALLOWED_PAGE_SIZES = List.of(10, 20, 50);
 
     private final ReviewService reviewService;
 
@@ -49,12 +52,14 @@ public class DashboardController {
             @RequestParam(name = "size", defaultValue = "10") int size,
             Model model
     ) {
-        Page<ReviewListItem> reviewPage = reviewService.listReviewsPage(page, size);
+        int effectiveSize = ALLOWED_PAGE_SIZES.contains(size) ? size : 10;
+        Page<ReviewListItem> reviewPage = reviewService.listReviewsPage(page, effectiveSize);
 
         model.addAttribute("reviews", reviewPage.getContent());
         model.addAttribute("filters", Map.of("sentiment", "All", "topic", "All"));
         model.addAttribute("currentPage", reviewPage.getNumber());
         model.addAttribute("pageSize", reviewPage.getSize());
+        model.addAttribute("allowedPageSizes", ALLOWED_PAGE_SIZES);
         model.addAttribute("totalPages", reviewPage.getTotalPages());
         model.addAttribute("totalElements", reviewPage.getTotalElements());
         model.addAttribute("hasPrevious", reviewPage.hasPrevious());
