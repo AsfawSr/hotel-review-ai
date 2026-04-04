@@ -20,7 +20,7 @@
 
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm metric-card h-100">
                 <div class="card-body">
                     <div class="text-muted">Total Reviews</div>
                     <div class="display-6" th:text="${totalReviews}">0</div>
@@ -28,7 +28,7 @@
             </div>
         </div>
         <div class="col-12 col-md-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm metric-card h-100">
                 <div class="card-body">
                     <div class="text-muted">Average Score</div>
                     <div class="display-6" th:text="${averageScore}">0.0</div>
@@ -36,7 +36,7 @@
             </div>
         </div>
         <div class="col-12 col-md-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm metric-card h-100">
                 <div class="card-body">
                     <div class="text-muted">Most Common Topic</div>
                     <div class="h4" th:text="${mostCommonTopic}">N/A</div>
@@ -44,7 +44,7 @@
             </div>
         </div>
         <div class="col-12 col-md-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm metric-card h-100">
                 <div class="card-body">
                     <div class="text-muted">Most Common Rating</div>
                     <div class="display-6" th:text="${mostCommonRating}">N/A</div>
@@ -66,7 +66,7 @@
 
     <div class="row g-3">
         <div class="col-12 col-lg-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm chart-card h-100">
                 <div class="card-body">
                     <h2 class="h6">Sentiment Distribution</h2>
                     <canvas id="sentimentChart" height="200"></canvas>
@@ -74,7 +74,7 @@
             </div>
         </div>
         <div class="col-12 col-lg-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm chart-card h-100">
                 <div class="card-body">
                     <h2 class="h6">Topic Frequency</h2>
                     <canvas id="topicChart" height="200"></canvas>
@@ -82,7 +82,7 @@
             </div>
         </div>
         <div class="col-12 col-lg-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm chart-card h-100">
                 <div class="card-body">
                     <h2 class="h6">Rating Distribution</h2>
                     <canvas id="ratingChart" height="200"></canvas>
