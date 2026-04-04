@@ -12,11 +12,14 @@ import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,6 +78,66 @@ public class ReviewService {
 
         return reviewRepository.findAllByOrderBySubmittedAtDesc(org.springframework.data.domain.PageRequest.of(safePage, safeSize))
                 .map(this::toReviewListItem);
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<ReviewListItem> listReviewsPage(int page, int size, ReviewFilters filters) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.min(Math.max(1, size), 100);
+
+        Specification<Review> specification = Specification.where(null);
+
+        if (filters.analysisStatus() != null) {
+            specification = specification.and((root, query, cb) -> cb.equal(root.get("analysisStatus"), filters.analysisStatus()));
+        }
+        if (filters.ratingMin() != null) {
+            specification = specification.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("rating"), filters.ratingMin()));
+        }
+        if (filters.ratingMax() != null) {
+            specification = specification.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("rating"), filters.ratingMax()));
+        }
+        if (filters.submittedFrom() != null) {
+            specification = specification.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("submittedAt"), filters.submittedFrom()));
+        }
+        if (filters.submittedTo() != null) {
+            specification = specification.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("submittedAt"), filters.submittedTo()));
+        }
+        if (filters.guestKeyword() != null && !filters.guestKeyword().isBlank()) {
+            String likeValue = "%" + filters.guestKeyword().trim().toLowerCase() + "%";
+            specification = specification.and((root, query, cb) -> cb.like(cb.lower(root.get("guestName")), likeValue));
+        }
+        if (filters.sentiment() != null) {
+            specification = specification.and((root, query, cb) -> cb.equal(root.join("analysis", jakarta.persistence.criteria.JoinType.LEFT).get("sentiment"), filters.sentiment()));
+        }
+        if (filters.topic() != null) {
+            specification = specification.and((root, query, cb) -> cb.equal(root.join("analysis", jakarta.persistence.criteria.JoinType.LEFT).get("mainTopic"), filters.topic()));
+        }
+
+        return reviewRepository.findAll(specification, org.springframework.data.domain.PageRequest.of(safePage, safeSize,
+                        org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "submittedAt")))
+                .map(this::toReviewListItem);
+    }
+
+    public ReviewFilters buildFilters(AnalysisStatus status,
+                                      Sentiment sentiment,
+                                      Topic topic,
+                                      Integer ratingMin,
+                                      Integer ratingMax,
+                                      LocalDate dateFrom,
+                                      LocalDate dateTo,
+                                      String guestKeyword) {
+        Integer safeMin = ratingMin == null ? null : Math.max(1, Math.min(5, ratingMin));
+        Integer safeMax = ratingMax == null ? null : Math.max(1, Math.min(5, ratingMax));
+        if (safeMin != null && safeMax != null && safeMin > safeMax) {
+            int temp = safeMin;
+            safeMin = safeMax;
+            safeMax = temp;
+        }
+
+        Instant submittedFrom = dateFrom == null ? null : dateFrom.atStartOfDay().toInstant(java.time.ZoneOffset.UTC);
+        Instant submittedTo = dateTo == null ? null : dateTo.atTime(LocalTime.MAX).toInstant(java.time.ZoneOffset.UTC);
+
+        return new ReviewFilters(status, sentiment, topic, safeMin, safeMax, submittedFrom, submittedTo, guestKeyword);
     }
 
     private ReviewListItem toReviewListItem(Review review) {
@@ -226,6 +289,18 @@ public class ReviewService {
             Review review,
             String policyContext,
             boolean ragEnabled
+    ) {
+    }
+
+    public record ReviewFilters(
+            AnalysisStatus analysisStatus,
+            Sentiment sentiment,
+            Topic topic,
+            Integer ratingMin,
+            Integer ratingMax,
+            Instant submittedFrom,
+            Instant submittedTo,
+            String guestKeyword
     ) {
     }
 }
