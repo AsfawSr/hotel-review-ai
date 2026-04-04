@@ -46,6 +46,8 @@ public class DashboardController {
         model.addAttribute("sentimentData", metrics.sentimentValues());
         model.addAttribute("topicLabels", metrics.topicLabels());
         model.addAttribute("topicData", metrics.topicValues());
+        model.addAttribute("ratingLabels", metrics.ratingLabels());
+        model.addAttribute("ratingData", metrics.ratingValues());
         model.addAttribute("lastUpdated", LocalDate.now());
         return "dashboard";
     }

@@ -65,7 +65,7 @@
     </div>
 
     <div class="row g-3">
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-lg-4">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h2 class="h6">Sentiment Distribution</h2>
@@ -73,11 +73,19 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-lg-4">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h2 class="h6">Topic Frequency</h2>
                     <canvas id="topicChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h6">Rating Distribution</h2>
+                    <canvas id="ratingChart" height="200"></canvas>
                 </div>
             </div>
         </div>
@@ -116,6 +124,29 @@
                     label: 'Mentions',
                     data: topicData,
                     backgroundColor: '#0d6efd'
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    const ratingLabels = /*[[${ratingLabels}]]*/ ['1', '2', '3', '4', '5'];
+    const ratingData = /*[[${ratingData}]]*/ [0, 0, 0, 0, 0];
+
+    const ratingChartElement = document.getElementById('ratingChart');
+    if (ratingChartElement) {
+        new Chart(ratingChartElement, {
+            type: 'bar',
+            data: {
+                labels: ratingLabels,
+                datasets: [{
+                    label: 'Reviews',
+                    data: ratingData,
+                    backgroundColor: '#6f42c1'
                 }]
             },
             options: {

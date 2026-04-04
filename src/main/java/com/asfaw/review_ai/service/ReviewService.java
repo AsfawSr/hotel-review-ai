@@ -110,8 +110,22 @@ public class ReviewService {
             topicCounts.put(topic.name(), count);
         });
 
+        Map<String, Long> ratingCounts = new LinkedHashMap<>();
+        ratingCounts.put("1", 0L);
+        ratingCounts.put("2", 0L);
+        ratingCounts.put("3", 0L);
+        ratingCounts.put("4", 0L);
+        ratingCounts.put("5", 0L);
+        reviewRepository.countByRating().forEach(tuple -> {
+            Integer rating = (Integer) tuple[0];
+            Long count = (Long) tuple[1];
+            if (rating != null && rating >= 1 && rating <= 5) {
+                ratingCounts.put(rating.toString(), count);
+            }
+        });
+
         return new DashboardMetrics(totalReviews, averageRating == null ? 0.0 : averageRating,
-                mostCommonTopic, mostCommonRating, sentimentCounts, topicCounts);
+                mostCommonTopic, mostCommonRating, sentimentCounts, topicCounts, ratingCounts);
     }
 
     private String resolveMostCommonTopic() {
@@ -299,7 +313,8 @@ public class ReviewService {
             String mostCommonTopic,
             String mostCommonRating,
             Map<String, Long> sentimentCounts,
-            Map<String, Long> topicCounts
+            Map<String, Long> topicCounts,
+            Map<String, Long> ratingCounts
     ) {
 
         public long positiveCount() {
@@ -328,6 +343,14 @@ public class ReviewService {
 
         public List<Long> topicValues() {
             return new ArrayList<>(topicCounts.values());
+        }
+
+        public List<String> ratingLabels() {
+            return new ArrayList<>(ratingCounts.keySet());
+        }
+
+        public List<Long> ratingValues() {
+            return new ArrayList<>(ratingCounts.values());
         }
     }
 

@@ -21,6 +21,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("select avg(r.rating) from Review r where r.rating is not null")
     Double findAverageRating();
 
+    @Query("select r.rating, count(r) from Review r where r.rating is not null group by r.rating order by r.rating asc")
+    List<Object[]> countByRating();
+
     @Query("select r.rating, count(r) from Review r where r.rating is not null group by r.rating order by count(r) desc, r.rating desc")
     List<Object[]> findTopRatings(Pageable pageable);
 
