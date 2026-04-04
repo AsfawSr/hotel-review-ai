@@ -10,7 +10,7 @@
         <div class="col-12 col-lg-2">
             <th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
         </div>
-        <main class="col-12 col-lg-10 py-4 px-3 px-lg-4" th:replace="${content}">
+        <main class="col-12 col-lg-10 py-4 px-3 px-lg-4" th:insert="${content}">
             <h1 class="h3">Dashboard</h1>
         </main>
     </div>
