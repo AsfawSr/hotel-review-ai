@@ -91,6 +91,7 @@ public class ReviewService {
         long totalReviews = reviewRepository.count();
         Double averageRating = reviewRepository.findAverageRating();
         String mostCommonTopic = resolveMostCommonTopic();
+        String mostCommonRating = resolveMostCommonRating();
 
         Map<String, Long> sentimentCounts = new LinkedHashMap<>();
         for (Sentiment sentiment : Sentiment.values()) {
@@ -110,7 +111,7 @@ public class ReviewService {
         });
 
         return new DashboardMetrics(totalReviews, averageRating == null ? 0.0 : averageRating,
-                mostCommonTopic, sentimentCounts, topicCounts);
+                mostCommonTopic, mostCommonRating, sentimentCounts, topicCounts);
     }
 
     private String resolveMostCommonTopic() {
@@ -120,6 +121,15 @@ public class ReviewService {
         }
         Topic topic = (Topic) topTopics.get(0)[0];
         return topic.name();
+    }
+
+    private String resolveMostCommonRating() {
+        List<Object[]> topRatings = reviewRepository.findTopRatings(PageRequest.of(0, 1));
+        if (topRatings.isEmpty()) {
+            return "N/A";
+        }
+        Integer rating = (Integer) topRatings.get(0)[0];
+        return rating == null ? "N/A" : rating.toString();
     }
 
     private ReviewAnalysis generateAnalysisIfAvailable(Review review) {
@@ -287,9 +297,22 @@ public class ReviewService {
             long totalReviews,
             double averageRating,
             String mostCommonTopic,
+            String mostCommonRating,
             Map<String, Long> sentimentCounts,
             Map<String, Long> topicCounts
     ) {
+
+        public long positiveCount() {
+            return sentimentCounts.getOrDefault(Sentiment.POSITIVE.name(), 0L);
+        }
+
+        public long neutralCount() {
+            return sentimentCounts.getOrDefault(Sentiment.NEUTRAL.name(), 0L);
+        }
+
+        public long negativeCount() {
+            return sentimentCounts.getOrDefault(Sentiment.NEGATIVE.name(), 0L);
+        }
 
         public List<String> sentimentLabels() {
             return new ArrayList<>(sentimentCounts.keySet());

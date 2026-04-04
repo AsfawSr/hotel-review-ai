@@ -46,9 +46,20 @@
         <div class="col-12 col-md-3">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <div class="text-muted">Open Actions</div>
-                    <div class="display-6">0</div>
+                    <div class="text-muted">Most Common Rating</div>
+                    <div class="display-6" th:text="${mostCommonRating}">N/A</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="h6 mb-3">Sentiment Counts</h2>
+            <div class="d-flex flex-wrap gap-3">
+                <span class="badge text-bg-success px-3 py-2">Positive: <span th:text="${positiveCount}">0</span></span>
+                <span class="badge text-bg-warning px-3 py-2">Neutral: <span th:text="${neutralCount}">0</span></span>
+                <span class="badge text-bg-danger px-3 py-2">Negative: <span th:text="${negativeCount}">0</span></span>
             </div>
         </div>
     </div>

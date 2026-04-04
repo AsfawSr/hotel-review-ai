@@ -38,6 +38,10 @@ public class DashboardController {
         model.addAttribute("totalReviews", metrics.totalReviews());
         model.addAttribute("averageScore", metrics.averageRating());
         model.addAttribute("mostCommonTopic", metrics.mostCommonTopic());
+        model.addAttribute("mostCommonRating", metrics.mostCommonRating());
+        model.addAttribute("positiveCount", metrics.positiveCount());
+        model.addAttribute("neutralCount", metrics.neutralCount());
+        model.addAttribute("negativeCount", metrics.negativeCount());
         model.addAttribute("sentimentLabels", metrics.sentimentLabels());
         model.addAttribute("sentimentData", metrics.sentimentValues());
         model.addAttribute("topicLabels", metrics.topicLabels());
