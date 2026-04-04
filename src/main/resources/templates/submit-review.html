@@ -18,21 +18,27 @@
             <form th:action="@{/reviews/submit}" th:object="${reviewForm}" method="post" class="row g-3">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
+                <div class="col-12" th:if="${#fields.hasAnyErrors()}">
+                    <div class="alert alert-danger mb-0" role="alert">
+                        Please fix the highlighted fields and try again.
+                    </div>
+                </div>
+
                 <div class="col-12">
                     <label class="form-label" for="guestName">Guest name</label>
-                    <input class="form-control" type="text" id="guestName" th:field="*{guestName}" placeholder="Jane Doe" />
-                    <div class="text-danger small" th:if="${#fields.hasErrors('guestName')}" th:errors="*{guestName}"></div>
+                    <input class="form-control" type="text" id="guestName" th:field="*{guestName}" th:classappend="${#fields.hasErrors('guestName')} ? ' is-invalid'" placeholder="Jane Doe" />
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('guestName')}" th:errors="*{guestName}"></div>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label" for="reviewText">Review</label>
-                    <textarea class="form-control" id="reviewText" rows="5" th:field="*{reviewText}" placeholder="Tell us about your stay..."></textarea>
-                    <div class="text-danger small" th:if="${#fields.hasErrors('reviewText')}" th:errors="*{reviewText}"></div>
+                    <textarea class="form-control" id="reviewText" rows="5" th:field="*{reviewText}" th:classappend="${#fields.hasErrors('reviewText')} ? ' is-invalid'" placeholder="Tell us about your stay..."></textarea>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('reviewText')}" th:errors="*{reviewText}"></div>
                 </div>
 
                 <div class="col-12 col-md-4">
                     <label class="form-label" for="rating">Rating (optional)</label>
-                    <select class="form-select" id="rating" th:field="*{rating}">
+                    <select class="form-select" id="rating" th:field="*{rating}" th:classappend="${#fields.hasErrors('rating')} ? ' is-invalid'">
                         <option value="">Choose...</option>
                         <option value="1">1</option>
                         <option value="2">2</option>
@@ -40,7 +46,7 @@
                         <option value="4">4</option>
                         <option value="5">5</option>
                     </select>
-                    <div class="text-danger small" th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}"></div>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}"></div>
                 </div>
 
                 <div class="col-12">

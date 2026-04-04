@@ -62,15 +62,28 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public List<ReviewListItem> listReviews() {
         return reviewRepository.findAllByOrderBySubmittedAtDesc().stream()
-                .map(review -> new ReviewListItem(
-                        review.getId(),
-                        review.getGuestName(),
-                        review.getRating(),
-                        review.getAnalysis() == null ? null : review.getAnalysis().getSentiment(),
-                        review.getAnalysis() == null ? null : review.getAnalysis().getMainTopic(),
-                        review.getSubmittedAt()
-                ))
+                .map(this::toReviewListItem)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<ReviewListItem> listReviewsPage(int page, int size) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.min(Math.max(1, size), 100);
+
+        return reviewRepository.findAllByOrderBySubmittedAtDesc(org.springframework.data.domain.PageRequest.of(safePage, safeSize))
+                .map(this::toReviewListItem);
+    }
+
+    private ReviewListItem toReviewListItem(Review review) {
+        return new ReviewListItem(
+                review.getId(),
+                review.getGuestName(),
+                review.getRating(),
+                review.getAnalysis() == null ? null : review.getAnalysis().getSentiment(),
+                review.getAnalysis() == null ? null : review.getAnalysis().getMainTopic(),
+                review.getSubmittedAt()
+        );
     }
 
     @Transactional(readOnly = true)

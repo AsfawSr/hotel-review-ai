@@ -1,18 +1,21 @@
 package com.asfaw.review_ai.web.controller;
 
 import com.asfaw.review_ai.service.ReviewService;
+import com.asfaw.review_ai.web.dto.ReviewListItem;
 import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -41,9 +44,23 @@ public class DashboardController {
     }
 
     @GetMapping("/reviews")
-    public String reviews(Model model) {
-        model.addAttribute("reviews", reviewService.listReviews());
+    public String reviews(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            Model model
+    ) {
+        Page<ReviewListItem> reviewPage = reviewService.listReviewsPage(page, size);
+
+        model.addAttribute("reviews", reviewPage.getContent());
         model.addAttribute("filters", Map.of("sentiment", "All", "topic", "All"));
+        model.addAttribute("currentPage", reviewPage.getNumber());
+        model.addAttribute("pageSize", reviewPage.getSize());
+        model.addAttribute("totalPages", reviewPage.getTotalPages());
+        model.addAttribute("totalElements", reviewPage.getTotalElements());
+        model.addAttribute("hasPrevious", reviewPage.hasPrevious());
+        model.addAttribute("hasNext", reviewPage.hasNext());
+        model.addAttribute("pageNumbers", java.util.stream.IntStream.range(0, reviewPage.getTotalPages()).boxed().toList());
+
         return "reviews";
     }
 
@@ -54,7 +71,7 @@ public class DashboardController {
     }
 
     @PostMapping("/reviews/submit")
-    public String submitReview(@Valid ReviewSubmissionRequest reviewForm,
+    public String submitReview(@Valid @ModelAttribute("reviewForm") ReviewSubmissionRequest reviewForm,
                                org.springframework.validation.BindingResult bindingResult,
                                RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
