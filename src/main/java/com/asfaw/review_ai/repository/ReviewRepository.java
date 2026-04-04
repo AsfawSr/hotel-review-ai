@@ -16,6 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("select avg(r.rating) from Review r where r.rating is not null")
     Double findAverageRating();
 
-    @EntityGraph(attributePaths = "analysis")
+    @EntityGraph(attributePaths = {"analysis", "analysis.topics"})
     Optional<Review> findWithAnalysisById(Long id);
 }

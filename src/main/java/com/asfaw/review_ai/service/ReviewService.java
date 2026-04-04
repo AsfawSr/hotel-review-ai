@@ -153,6 +153,11 @@ public class ReviewService {
         Review review = reviewRepository.findWithAnalysisById(reviewId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Review not found"));
 
+        // Ensure lazy collections needed by Thymeleaf are loaded before transaction ends.
+        if (review.getAnalysis() != null) {
+            review.getAnalysis().getTopics().size();
+        }
+
         List<Document> documents = ragContextService.retrievePolicyContext(review.getReviewText());
         String policyContext = ragContextService.buildContextBlock(documents);
         boolean ragEnabled = !documents.isEmpty();
