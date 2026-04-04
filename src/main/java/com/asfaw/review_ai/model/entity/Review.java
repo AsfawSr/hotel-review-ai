@@ -55,7 +55,7 @@ public class Review {
     private Integer rating;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "analysis_status", nullable = false, length = 20)
+    @Column(name = "analysis_status", length = 20)
     private AnalysisStatus analysisStatus;
 
     @Column(name = "analysis_error", length = 1000)
