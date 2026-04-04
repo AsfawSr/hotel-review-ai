@@ -185,18 +185,54 @@ public class ReviewService {
     }
 
     private int estimateSentimentScore(String text, Integer rating) {
-        if (rating != null) {
-            return Math.min(100, Math.max(0, rating * 20));
+        int ratingScore = rating == null ? 50 : Math.min(100, Math.max(0, rating * 20));
+        int textScore = estimateTextOnlyScore(text);
+
+        if (rating == null) {
+            return textScore;
         }
 
+        boolean strongNegativeText = containsAny(text,
+                "don't like", "dont like", "didn't like", "not good", "never again", "terrible", "awful", "worst");
+        boolean strongPositiveText = containsAny(text,
+                "really liked", "loved", "excellent", "amazing", "very happy", "highly recommend", "great stay");
+
+        int blended = (int) Math.round((ratingScore * 0.55) + (textScore * 0.45));
+
+        // If text strongly contradicts rating, prioritize what the guest actually wrote.
+        if (strongNegativeText && rating >= 4) {
+            blended = Math.min(40, (int) Math.round((ratingScore * 0.35) + (textScore * 0.65)));
+        } else if (strongPositiveText && rating <= 2) {
+            blended = Math.max(60, (int) Math.round((ratingScore * 0.35) + (textScore * 0.65)));
+        }
+
+        return Math.min(100, Math.max(0, blended));
+    }
+
+    private int estimateTextOnlyScore(String text) {
         int score = 50;
-        if (containsAny(text, "great", "excellent", "amazing", "friendly", "clean", "love", "comfortable")) {
+
+        score += 10 * countMatches(text, "great", "excellent", "amazing", "friendly", "clean", "love", "comfortable", "happy");
+        score -= 10 * countMatches(text, "bad", "dirty", "rude", "noisy", "uncomfortable", "slow", "terrible", "hate", "poor");
+
+        if (containsAny(text, "don't like", "dont like", "didn't like", "not good", "never again", "worst")) {
+            score -= 25;
+        }
+        if (containsAny(text, "really liked", "loved", "highly recommend", "very satisfied")) {
             score += 20;
         }
-        if (containsAny(text, "bad", "dirty", "rude", "noisy", "uncomfortable", "slow", "terrible")) {
-            score -= 20;
-        }
+
         return Math.min(100, Math.max(0, score));
+    }
+
+    private int countMatches(String text, String... keywords) {
+        int count = 0;
+        for (String keyword : keywords) {
+            if (text.contains(keyword)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private Set<Topic> detectTopics(String text) {
