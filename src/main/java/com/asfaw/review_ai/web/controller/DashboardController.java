@@ -1,5 +1,6 @@
 package com.asfaw.review_ai.web.controller;
 
+import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.service.ReviewService;
 import com.asfaw.review_ai.service.ReviewAnalysisProcessingService;
 import com.asfaw.review_ai.web.dto.ReviewListItem;
@@ -73,6 +74,7 @@ public class DashboardController {
         model.addAttribute("hasPrevious", reviewPage.hasPrevious());
         model.addAttribute("hasNext", reviewPage.hasNext());
         model.addAttribute("pageNumbers", java.util.stream.IntStream.range(0, reviewPage.getTotalPages()).boxed().toList());
+        model.addAttribute("hasInFlightAnalyses", reviewPage.getContent().stream().anyMatch(this::isInFlight));
 
         return "reviews";
     }
@@ -113,6 +115,15 @@ public class DashboardController {
         model.addAttribute("review", detail.review());
         model.addAttribute("policyContext", detail.policyContext());
         model.addAttribute("ragEnabled", detail.ragEnabled());
+        model.addAttribute("inFlightAnalysis", isInFlight(detail.review().getAnalysisStatus()));
         return "review-detail";
+    }
+
+    private boolean isInFlight(ReviewListItem item) {
+        return isInFlight(item.analysisStatus());
+    }
+
+    private boolean isInFlight(AnalysisStatus status) {
+        return status == AnalysisStatus.PENDING || status == AnalysisStatus.PROCESSING;
     }
 }

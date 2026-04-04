@@ -37,6 +37,9 @@
                 <small class="text-muted" th:text="'Total reviews: ' + ${totalElements}">Total reviews: 0</small>
                 <small class="text-muted" th:text="'Page ' + (${totalPages == 0 ? 0 : currentPage + 1}) + ' of ' + ${totalPages}">Page 0 of 0</small>
             </div>
+            <div class="alert alert-info py-2" th:if="${hasInFlightAnalyses}">
+                Some analyses are still running. This page refreshes automatically every 6 seconds.
+            </div>
 
             <div class="table-responsive">
                 <table class="table table-striped align-middle mb-0">
@@ -105,7 +108,11 @@
     </div>
 </section>
 
-<script></script>
+<script th:if="${hasInFlightAnalyses}">
+    setTimeout(function () {
+        window.location.reload();
+    }, 6000);
+</script>
 </body>
 </html>
 
