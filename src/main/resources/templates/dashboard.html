@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/base :: layout(pageTitle=~{::title}, content=~{::section}, pageScripts=~{::script})}">
+      th:replace="~{layout/base :: layout(pageTitle=~{::title}, content=~{::section}, pageScripts=~{::#pageScripts})}">
 <head>
     <title>Dashboard</title>
 </head>
@@ -92,70 +92,72 @@
     </div>
 </section>
 
-<script src="/webjars/chart.js/chart.umd.js"></script>
-<script th:inline="javascript">
-    const sentimentLabels = /*[[${sentimentLabels}]]*/ ['POSITIVE', 'NEUTRAL', 'NEGATIVE'];
-    const sentimentData = /*[[${sentimentData}]]*/ [0, 0, 0];
+<th:block id="pageScripts">
+    <script src="/webjars/chart.js/chart.umd.js"></script>
+    <script th:inline="javascript">
+        const sentimentLabels = /*[[${sentimentLabels}]]*/ ['POSITIVE', 'NEUTRAL', 'NEGATIVE'];
+        const sentimentData = /*[[${sentimentData}]]*/ [0, 0, 0];
 
-    const sentimentChartElement = document.getElementById('sentimentChart');
-    if (sentimentChartElement) {
-        new Chart(sentimentChartElement, {
-            type: 'doughnut',
-            data: {
-                labels: sentimentLabels,
-                datasets: [{
-                    data: sentimentData,
-                    backgroundColor: ['#198754', '#6c757d', '#dc3545']
-                }]
-            }
-        });
-    }
-
-    const topicLabels = /*[[${topicLabels}]]*/ ['CLEANLINESS', 'STAFF', 'LOCATION', 'AMENITIES', 'VALUE'];
-    const topicData = /*[[${topicData}]]*/ [0, 0, 0, 0, 0];
-
-    const topicChartElement = document.getElementById('topicChart');
-    if (topicChartElement) {
-        new Chart(topicChartElement, {
-            type: 'bar',
-            data: {
-                labels: topicLabels,
-                datasets: [{
-                    label: 'Mentions',
-                    data: topicData,
-                    backgroundColor: '#0d6efd'
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
+        const sentimentChartElement = document.getElementById('sentimentChart');
+        if (sentimentChartElement) {
+            new Chart(sentimentChartElement, {
+                type: 'doughnut',
+                data: {
+                    labels: sentimentLabels,
+                    datasets: [{
+                        data: sentimentData,
+                        backgroundColor: ['#198754', '#6c757d', '#dc3545']
+                    }]
                 }
-            }
-        });
-    }
+            });
+        }
 
-    const ratingLabels = /*[[${ratingLabels}]]*/ ['1', '2', '3', '4', '5'];
-    const ratingData = /*[[${ratingData}]]*/ [0, 0, 0, 0, 0];
+        const topicLabels = /*[[${topicLabels}]]*/ ['CLEANLINESS', 'STAFF', 'LOCATION', 'AMENITIES', 'VALUE'];
+        const topicData = /*[[${topicData}]]*/ [0, 0, 0, 0, 0];
 
-    const ratingChartElement = document.getElementById('ratingChart');
-    if (ratingChartElement) {
-        new Chart(ratingChartElement, {
-            type: 'bar',
-            data: {
-                labels: ratingLabels,
-                datasets: [{
-                    label: 'Reviews',
-                    data: ratingData,
-                    backgroundColor: '#6f42c1'
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
+        const topicChartElement = document.getElementById('topicChart');
+        if (topicChartElement) {
+            new Chart(topicChartElement, {
+                type: 'bar',
+                data: {
+                    labels: topicLabels,
+                    datasets: [{
+                        label: 'Mentions',
+                        data: topicData,
+                        backgroundColor: '#0d6efd'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
                 }
-            }
-        });
-    }
-</script>
+            });
+        }
+
+        const ratingLabels = /*[[${ratingLabels}]]*/ ['1', '2', '3', '4', '5'];
+        const ratingData = /*[[${ratingData}]]*/ [0, 0, 0, 0, 0];
+
+        const ratingChartElement = document.getElementById('ratingChart');
+        if (ratingChartElement) {
+            new Chart(ratingChartElement, {
+                type: 'bar',
+                data: {
+                    labels: ratingLabels,
+                    datasets: [{
+                        label: 'Reviews',
+                        data: ratingData,
+                        backgroundColor: '#6f42c1'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    </script>
+</th:block>
 </body>
 </html>
