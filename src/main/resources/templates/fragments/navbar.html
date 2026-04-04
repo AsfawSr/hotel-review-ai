@@ -1,25 +1,14 @@
-<nav xmlns:th="http://www.thymeleaf.org" th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/dashboard}">HotelReviewAI</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/dashboard}">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/reviews}">Reviews</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/reviews/submit}">Submit Review</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/ai/status}">AI Status</a>
-                </li>
-            </ul>
-            <span class="navbar-text">Admin</span>
-        </div>
+<aside xmlns:th="http://www.thymeleaf.org" th:fragment="navbar" class="app-sidebar text-white p-3 d-flex flex-column">
+    <a class="brand mb-4" th:href="@{/dashboard}">HotelReviewAI</a>
+
+    <nav class="nav nav-pills flex-column mb-auto">
+        <a class="nav-link" th:href="@{/dashboard}">Dashboard</a>
+        <a class="nav-link" th:href="@{/reviews}">Reviews</a>
+        <a class="nav-link" th:href="@{/reviews/submit}">Submit Review</a>
+        <a class="nav-link" th:href="@{/ai/status}">AI Status</a>
+    </nav>
+
+    <div class="small border-top border-light border-opacity-25 pt-3 mt-3 text-white-50">
+        Signed in as <strong class="text-white">Admin</strong>
     </div>
-</nav>
+</aside>

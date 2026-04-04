@@ -5,11 +5,12 @@
     <title th:replace="${pageTitle}">HotelReviewAI</title>
 </head>
 <body class="bg-light">
-<th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
-
 <div class="container-fluid">
-    <div class="row">
-        <main class="col-12 col-lg-10 offset-lg-1 py-4" th:replace="${content}">
+    <div class="row g-0 min-vh-100">
+        <div class="col-12 col-lg-2">
+            <th:block th:replace="~{fragments/navbar :: navbar}"></th:block>
+        </div>
+        <main class="col-12 col-lg-10 py-4 px-3 px-lg-4" th:replace="${content}">
             <h1 class="h3">Dashboard</h1>
         </main>
     </div>
