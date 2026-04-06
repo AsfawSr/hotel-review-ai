@@ -71,7 +71,7 @@ public class ReviewAnalysisProcessingService {
             ReviewAnalysisResult result = aiService.analyzeReview(review);
             return mapAnalysis(result);
         } catch (RuntimeException ex) {
-            log.warn("AI analysis failed for review from {}. Falling back.", review.getGuestName(), ex);
+            log.warn("AI analysis failed for  review from {}. Falling back.", review.getGuestName(), ex);
             return buildFallbackAnalysis(review);
         }
     }
