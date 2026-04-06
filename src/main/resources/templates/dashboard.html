@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/base :: layout(pageTitle=~{::title}, content=~{::section}, pageScripts=~{::#pageScripts})}">
+      th:replace="~{layout/base :: layout(pageTitle=~{::title}, content=~{::section}, pageScripts=~{::script})}">
 <head>
     <title>Dashboard</title>
 </head>
@@ -92,9 +92,8 @@
     </div>
 </section>
 
-<th:block id="pageScripts">
-    <script src="/webjars/chart.js/dist/chart.umd.js"></script>
-    <script th:inline="javascript">
+<script src="/webjars/chart.js/dist/chart.umd.js"></script>
+<script th:inline="javascript">
         const sentimentLabels = /*[[${sentimentLabels}]]*/ ['POSITIVE', 'NEUTRAL', 'NEGATIVE'];
         const sentimentData = /*[[${sentimentData}]]*/ [0, 0, 0];
 
@@ -157,7 +156,6 @@
                 }
             });
         }
-    </script>
-</th:block>
+</script>
 </body>
 </html>
