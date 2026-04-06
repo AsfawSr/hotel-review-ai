@@ -5,61 +5,61 @@
     <title>Dashboard</title>
 </head>
 <body>
-<section>
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+<section class="dashboard-section">
+    <div class="dashboard-header d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-1">Review Dashboard</h1>
+            <h1 class="h3 mb-1 fw-semibold">Review Dashboard</h1>
             <p class="text-muted mb-0">Snapshot of guest feedback and AI analysis.</p>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <a class="btn btn-sm btn-outline-primary" th:href="@{/ai/status}">AI Status</a>
-            <a class="btn btn-sm btn-primary" th:href="@{/reviews}">View Reviews</a>
-            <div class="text-muted ms-2">Last updated: <span th:text="${lastUpdated}">2026-04-03</span></div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a class="btn btn-sm btn-outline-success" th:href="@{/ai/status}">AI Status</a>
+            <a class="btn btn-sm btn-success" th:href="@{/reviews}">View Reviews</a>
+            <div class="text-muted small ms-1">Last updated: <span th:text="${lastUpdated}">2026-04-03</span></div>
         </div>
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-3">
-            <div class="card shadow-sm metric-card h-100">
+            <div class="card shadow-sm metric-card metric-card-accent h-100">
                 <div class="card-body">
-                    <div class="text-muted">Total Reviews</div>
-                    <div class="display-6" th:text="${totalReviews}">0</div>
+                    <div class="metric-label text-muted">Total Reviews</div>
+                    <div class="metric-value display-6" th:text="${totalReviews}">0</div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-md-3">
-            <div class="card shadow-sm metric-card h-100">
+            <div class="card shadow-sm metric-card metric-card-accent h-100">
                 <div class="card-body">
-                    <div class="text-muted">Average Score</div>
-                    <div class="display-6" th:text="${averageScore}">0.0</div>
+                    <div class="metric-label text-muted">Average Score</div>
+                    <div class="metric-value display-6" th:text="${averageScore}">0.0</div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-md-3">
-            <div class="card shadow-sm metric-card h-100">
+            <div class="card shadow-sm metric-card metric-card-accent h-100">
                 <div class="card-body">
-                    <div class="text-muted">Most Common Topic</div>
-                    <div class="h4" th:text="${mostCommonTopic}">N/A</div>
+                    <div class="metric-label text-muted">Most Common Topic</div>
+                    <div class="metric-value h4" th:text="${mostCommonTopic}">N/A</div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-md-3">
-            <div class="card shadow-sm metric-card h-100">
+            <div class="card shadow-sm metric-card metric-card-accent h-100">
                 <div class="card-body">
-                    <div class="text-muted">Most Common Rating</div>
-                    <div class="display-6" th:text="${mostCommonRating}">N/A</div>
+                    <div class="metric-label text-muted">Most Common Rating</div>
+                    <div class="metric-value display-6" th:text="${mostCommonRating}">N/A</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm mb-4 dashboard-sentiment-card">
         <div class="card-body">
-            <h2 class="h6 mb-3">Sentiment Counts</h2>
+            <h2 class="h6 mb-3 fw-semibold">Sentiment Counts</h2>
             <div class="d-flex flex-wrap gap-3">
-                <span class="badge text-bg-success px-3 py-2">Positive: <span th:text="${positiveCount}">0</span></span>
-                <span class="badge text-bg-warning px-3 py-2">Neutral: <span th:text="${neutralCount}">0</span></span>
-                <span class="badge text-bg-danger px-3 py-2">Negative: <span th:text="${negativeCount}">0</span></span>
+                <span class="badge text-bg-success px-3 py-2 rounded-pill">Positive: <span th:text="${positiveCount}">0</span></span>
+                <span class="badge text-bg-warning px-3 py-2 rounded-pill">Neutral: <span th:text="${neutralCount}">0</span></span>
+                <span class="badge text-bg-danger px-3 py-2 rounded-pill">Negative: <span th:text="${negativeCount}">0</span></span>
             </div>
         </div>
     </div>
@@ -68,7 +68,7 @@
         <div class="col-12 col-lg-4">
             <div class="card shadow-sm chart-card h-100">
                 <div class="card-body">
-                    <h2 class="h6">Sentiment Distribution</h2>
+                    <h2 class="h6 fw-semibold">Sentiment Distribution</h2>
                     <canvas id="sentimentChart" height="200"></canvas>
                 </div>
             </div>
@@ -76,7 +76,7 @@
         <div class="col-12 col-lg-4">
             <div class="card shadow-sm chart-card h-100">
                 <div class="card-body">
-                    <h2 class="h6">Topic Frequency</h2>
+                    <h2 class="h6 fw-semibold">Topic Frequency</h2>
                     <canvas id="topicChart" height="200"></canvas>
                 </div>
             </div>
@@ -84,7 +84,7 @@
         <div class="col-12 col-lg-4">
             <div class="card shadow-sm chart-card h-100">
                 <div class="card-body">
-                    <h2 class="h6">Rating Distribution</h2>
+                    <h2 class="h6 fw-semibold">Rating Distribution</h2>
                     <canvas id="ratingChart" height="200"></canvas>
                 </div>
             </div>
@@ -105,8 +105,17 @@
                     labels: sentimentLabels,
                     datasets: [{
                         data: sentimentData,
-                        backgroundColor: ['#198754', '#6c757d', '#dc3545']
+                        backgroundColor: ['#198754', '#a0aec0', '#dc3545'],
+                        borderWidth: 0
                     }]
+                },
+                options: {
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
                 }
             });
         }
@@ -123,12 +132,23 @@
                     datasets: [{
                         label: 'Mentions',
                         data: topicData,
-                        backgroundColor: '#0d6efd'
+                        backgroundColor: '#2f9e72',
+                        borderRadius: 8
                     }]
                 },
                 options: {
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true }
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(15, 81, 50, 0.1)'
+                            }
+                        }
                     }
                 }
             });
@@ -146,12 +166,23 @@
                     datasets: [{
                         label: 'Reviews',
                         data: ratingData,
-                        backgroundColor: '#6f42c1'
+                        backgroundColor: '#0f5132',
+                        borderRadius: 8
                     }]
                 },
                 options: {
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true }
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(15, 81, 50, 0.1)'
+                            }
+                        }
                     }
                 }
             });
