@@ -11,4 +11,11 @@
     <div class="small border-top border-light border-opacity-25 pt-3 mt-3 text-white-50">
         Signed in as <strong class="text-white">Admin</strong>
     </div>
+
+    <form th:action="@{/logout}" method="post" class="mt-3">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit" class="nav-link nav-link-button w-100 text-start">
+            Logout
+        </button>
+    </form>
 </aside>
