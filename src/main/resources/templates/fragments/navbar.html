@@ -2,10 +2,10 @@
     <a class="brand mb-4" th:href="@{/dashboard}">HotelReviewAI</a>
 
     <nav class="nav nav-pills flex-column mb-auto">
-        <a class="nav-link" th:href="@{/dashboard}" th:classappend="${#httpServletRequest.requestURI == '/dashboard'} ? ' active' : ''">Dashboard</a>
-        <a class="nav-link" th:href="@{/reviews}" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/reviews') && #httpServletRequest.requestURI != '/reviews/submit'} ? ' active' : ''">Reviews</a>
-        <a class="nav-link" th:href="@{/reviews/submit}" th:classappend="${#httpServletRequest.requestURI == '/reviews/submit'} ? ' active' : ''">Submit Review</a>
-        <a class="nav-link" th:href="@{/ai/status}" th:classappend="${#httpServletRequest.requestURI == '/ai/status'} ? ' active' : ''">AI Status</a>
+        <a class="nav-link" th:href="@{/dashboard}" th:classappend="${currentPath == '/dashboard' || currentPath == '/'} ? ' active' : ''">Dashboard</a>
+        <a class="nav-link" th:href="@{/reviews}" th:classappend="${#strings.startsWith(currentPath, '/reviews') && currentPath != '/reviews/submit'} ? ' active' : ''">Reviews</a>
+        <a class="nav-link" th:href="@{/reviews/submit}" th:classappend="${currentPath == '/reviews/submit'} ? ' active' : ''">Submit Review</a>
+        <a class="nav-link" th:href="@{/ai/status}" th:classappend="${currentPath == '/ai/status'} ? ' active' : ''">AI Status</a>
     </nav>
 
     <div class="small border-top border-light border-opacity-25 pt-3 mt-3 text-white-50">

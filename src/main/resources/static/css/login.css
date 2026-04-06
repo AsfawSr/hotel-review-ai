@@ -1,0 +1,50 @@
+:root {
+    --brand-dark: #0f5132;
+    --brand-main: #198754;
+    --brand-soft: #e8f5ee;
+}
+
+body {
+    margin: 0;
+    font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f4f7f5;
+}
+
+.login-bg {
+    min-height: 100vh;
+    background: radial-gradient(circle at 10% 10%, #d8f3df 0%, #f4f7f5 45%),
+                linear-gradient(135deg, #edf8f1 0%, #f7faf8 100%);
+}
+
+.login-card {
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.login-card .card-body {
+    position: relative;
+}
+
+.login-card .card-body::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--brand-dark), var(--brand-main));
+}
+
+.form-control:focus {
+    border-color: var(--brand-main);
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
+}
+
+.btn-success {
+    background-color: var(--brand-main);
+    border-color: var(--brand-main);
+}
+
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #157347;
+}
+
