@@ -165,15 +165,15 @@
 
             <nav class="mt-3" th:if="${totalPages > 1}" aria-label="Review pagination">
                 <ul class="pagination justify-content-end mb-0">
-                    <li class="page-item" th:classappend="${!hasPrevious} ? ' disabled'">
+                    <li class="page-item" th:classappend="${!hasPrevious} ? ' disabled' : ''">
                         <a class="page-link" th:href="@{/reviews(page=${currentPage - 1},size=${pageSize},status=${selectedStatus},sentiment=${selectedSentiment},topic=${selectedTopic},ratingMin=${ratingMin},ratingMax=${ratingMax},dateFrom=${dateFrom},dateTo=${dateTo},guest=${guest})}">Previous</a>
                     </li>
 
-                    <li class="page-item" th:each="pageNumber : ${pageNumbers}" th:classappend="${pageNumber == currentPage} ? ' active'">
+                    <li class="page-item" th:each="pageNumber : ${pageNumbers}" th:classappend="${pageNumber == currentPage} ? ' active' : ''">
                         <a class="page-link" th:href="@{/reviews(page=${pageNumber},size=${pageSize},status=${selectedStatus},sentiment=${selectedSentiment},topic=${selectedTopic},ratingMin=${ratingMin},ratingMax=${ratingMax},dateFrom=${dateFrom},dateTo=${dateTo},guest=${guest})}" th:text="${pageNumber + 1}">1</a>
                     </li>
 
-                    <li class="page-item" th:classappend="${!hasNext} ? ' disabled'">
+                    <li class="page-item" th:classappend="${!hasNext} ? ' disabled' : ''">
                         <a class="page-link" th:href="@{/reviews(page=${currentPage + 1},size=${pageSize},status=${selectedStatus},sentiment=${selectedSentiment},topic=${selectedTopic},ratingMin=${ratingMin},ratingMax=${ratingMax},dateFrom=${dateFrom},dateTo=${dateTo},guest=${guest})}">Next</a>
                     </li>
                 </ul>
