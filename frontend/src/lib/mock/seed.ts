@@ -61,6 +61,7 @@ function at(now: Date, daysAgo: number, hour: number): string {
   const d = new Date(now);
   d.setDate(d.getDate() - daysAgo);
   d.setHours(hour, (daysAgo * 17) % 60, 0, 0);
+  if (d > now) d.setTime(now.getTime() - (hour + 1) * 5 * 60_000);
   return d.toISOString();
 }
 
