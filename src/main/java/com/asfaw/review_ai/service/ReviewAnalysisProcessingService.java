@@ -30,6 +30,7 @@ public class ReviewAnalysisProcessingService {
     private final ReviewRepository reviewRepository;
     private final ObjectProvider<ReviewAnalysisAiService> reviewAnalysisAiServiceProvider;
     private final AnalysisProperties analysisProperties;
+    private final ReviewAnalysisWriter analysisWriter;
 
     @Async("analysisTaskExecutor")
     public void processReviewAsync(Long reviewId) {
@@ -42,19 +43,10 @@ public class ReviewAnalysisProcessingService {
         }
 
         try {
-            ReviewAnalysis analysis = generateAnalysis(review);
-            analysis.setReview(review);
-            review.setAnalysis(analysis);
-            review.setAnalysisStatus(AnalysisStatus.COMPLETED);
-            review.setAnalysisError(null);
-            review.setAnalysisUpdatedAt(Instant.now());
-            reviewRepository.save(review);
+            analysisWriter.complete(reviewId, generateAnalysis(review));
         } catch (RuntimeException ex) {
             log.warn("Async analysis failed for review {}", reviewId, ex);
-            review.setAnalysisStatus(AnalysisStatus.FAILED);
-            review.setAnalysisError(truncateError(ex.getMessage()));
-            review.setAnalysisUpdatedAt(Instant.now());
-            reviewRepository.save(review);
+            analysisWriter.fail(reviewId, truncateError(ex.getMessage()));
         }
     }
 

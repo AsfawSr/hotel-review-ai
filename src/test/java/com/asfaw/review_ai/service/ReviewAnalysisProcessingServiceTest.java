@@ -4,12 +4,14 @@ import com.asfaw.review_ai.ai.dto.ReviewAnalysisResult;
 import com.asfaw.review_ai.ai.service.ReviewAnalysisAiService;
 import com.asfaw.review_ai.config.AnalysisProperties;
 import com.asfaw.review_ai.model.entity.Review;
+import com.asfaw.review_ai.model.entity.ReviewAnalysis;
 import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
 import com.asfaw.review_ai.repository.ReviewRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.time.Duration;
@@ -28,6 +30,7 @@ class ReviewAnalysisProcessingServiceTest {
 
     private final ReviewRepository repository = mock(ReviewRepository.class);
     private final ReviewAnalysisAiService aiService = mock(ReviewAnalysisAiService.class);
+    private final ReviewAnalysisWriter writer = mock(ReviewAnalysisWriter.class);
     @SuppressWarnings("unchecked")
     private final ObjectProvider<ReviewAnalysisAiService> provider = mock(ObjectProvider.class);
     private final AnalysisProperties properties = new AnalysisProperties(
@@ -38,7 +41,7 @@ class ReviewAnalysisProcessingServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ReviewAnalysisProcessingService(repository, provider, properties);
+        service = new ReviewAnalysisProcessingService(repository, provider, properties, writer);
         review = new Review();
         review.setId(1L);
         review.setGuestName("Guest");
@@ -58,8 +61,7 @@ class ReviewAnalysisProcessingServiceTest {
         service.processReviewAsync(1L);
 
         verify(aiService, times(2)).analyzeReview(review);
-        assertThat(review.getAnalysisStatus()).isEqualTo(AnalysisStatus.COMPLETED);
-        assertThat(review.getAnalysis().getManagerResponse()).isEqualTo("Thanks!");
+        assertThat(completedAnalysis().getManagerResponse()).isEqualTo("Thanks!");
     }
 
     @Test
@@ -69,8 +71,13 @@ class ReviewAnalysisProcessingServiceTest {
         service.processReviewAsync(1L);
 
         verify(aiService, times(2)).analyzeReview(review);
-        assertThat(review.getAnalysisStatus()).isEqualTo(AnalysisStatus.COMPLETED);
-        assertThat(review.getAnalysis().getTopics()).contains(Topic.STAFF);
+        assertThat(completedAnalysis().getTopics()).contains(Topic.STAFF);
+    }
+
+    private ReviewAnalysis completedAnalysis() {
+        ArgumentCaptor<ReviewAnalysis> captor = ArgumentCaptor.forClass(ReviewAnalysis.class);
+        verify(writer).complete(eq(1L), captor.capture());
+        return captor.getValue();
     }
 
     @Test
