@@ -21,6 +21,7 @@ export const useReviews = (query: ReviewQuery) =>
     queryKey: queryKeys.reviews(query),
     queryFn: () => dataSource.listReviews(query),
     placeholderData: (previous) => previous,
+    refetchIntervalInBackground: true,
     refetchInterval: (q) =>
       q.state.data?.content.some((r) => r.analysisStatus === "PENDING" || r.analysisStatus === "PROCESSING")
         ? IN_FLIGHT_POLL_MS
@@ -32,6 +33,7 @@ export const useReview = (id: number) =>
     queryKey: queryKeys.review(id),
     queryFn: () => dataSource.getReview(id),
     retry: false,
+    refetchIntervalInBackground: true,
     refetchInterval: (q) => {
       const status = q.state.data?.review.analysisStatus;
       return status === "PENDING" || status === "PROCESSING" ? IN_FLIGHT_POLL_MS : false;
