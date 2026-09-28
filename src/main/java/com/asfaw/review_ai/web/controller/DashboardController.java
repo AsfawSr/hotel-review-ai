@@ -5,6 +5,7 @@ import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
 import com.asfaw.review_ai.service.ReviewService;
 import com.asfaw.review_ai.service.ReviewAnalysisProcessingService;
+import com.asfaw.review_ai.web.SafeRedirect;
 import com.asfaw.review_ai.web.dto.ReviewListItem;
 import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
 import jakarta.validation.Valid;
@@ -224,7 +225,7 @@ public class DashboardController {
         Long reviewId = reviewService.queueRetry(id).getId();
         reviewAnalysisProcessingService.processReviewAsync(reviewId);
         redirectAttributes.addFlashAttribute("retryQueued", true);
-        return "redirect:" + redirectPath;
+        return "redirect:" + SafeRedirect.reviewsPathOr(redirectPath, "/reviews/" + id);
     }
 
     @GetMapping("/reviews/{id}")
