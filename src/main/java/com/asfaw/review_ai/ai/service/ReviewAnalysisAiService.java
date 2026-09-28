@@ -47,11 +47,17 @@ public class ReviewAnalysisAiService {
         return outputConverter.convert(rawResponse);
     }
 
-    private String buildUserPrompt(Review review) {
+    String buildUserPrompt(Review review) {
         String ratingLine = review.getRating() == null ? "(not provided)" : review.getRating().toString();
-        return "Guest name: " + review.getGuestName() + "\n"
+        return "Analyze the guest review below.\n"
+                + "Guest name: " + neutralizeTags(review.getGuestName()) + "\n"
                 + "Rating: " + ratingLine + "\n"
-                + "Review: " + review.getReviewText();
+                + "<guest_review>\n" + neutralizeTags(review.getReviewText()) + "\n</guest_review>";
+    }
+
+    // Prevents guest text from closing the delimiter and smuggling instructions outside it.
+    private static String neutralizeTags(String value) {
+        return value == null ? "" : value.replace("<", "‹").replace(">", "›");
     }
 
     private String renderSystemPrompt(String ragContext, String outputFormat) {
