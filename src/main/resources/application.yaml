@@ -23,6 +23,12 @@ spring:
   thymeleaf:
     cache: false
 
+  # Applies to every RestClient.Builder, including the Ollama client and the AI status check.
+  http:
+    client:
+      connect-timeout: ${HTTP_CONNECT_TIMEOUT:5s}
+      read-timeout: ${HTTP_READ_TIMEOUT:120s}
+
   security:
     user:
       name: ${APP_ADMIN_USERNAME:admin}
@@ -67,6 +73,8 @@ app:
     pending-grace: PT2M
     processing-timeout: PT10M
     recovery-batch-size: 20
+    ai-max-attempts: 2
+    ai-retry-backoff: PT2S
 
 server:
   port: ${SERVER_PORT:8080}

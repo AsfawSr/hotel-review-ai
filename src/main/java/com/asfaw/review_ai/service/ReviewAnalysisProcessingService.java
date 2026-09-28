@@ -2,6 +2,7 @@ package com.asfaw.review_ai.service;
 
 import com.asfaw.review_ai.ai.dto.ReviewAnalysisResult;
 import com.asfaw.review_ai.ai.service.ReviewAnalysisAiService;
+import com.asfaw.review_ai.config.AnalysisProperties;
 import com.asfaw.review_ai.model.entity.Review;
 import com.asfaw.review_ai.model.entity.ReviewAnalysis;
 import com.asfaw.review_ai.model.enums.AnalysisStatus;
@@ -28,6 +29,7 @@ public class ReviewAnalysisProcessingService {
 
     private final ReviewRepository reviewRepository;
     private final ObjectProvider<ReviewAnalysisAiService> reviewAnalysisAiServiceProvider;
+    private final AnalysisProperties analysisProperties;
 
     @Async("analysisTaskExecutor")
     public void processReviewAsync(Long reviewId) {
@@ -62,12 +64,28 @@ public class ReviewAnalysisProcessingService {
             return buildFallbackAnalysis(review);
         }
 
+        int maxAttempts = Math.max(1, analysisProperties.aiMaxAttempts());
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                return mapAnalysis(aiService.analyzeReview(review));
+            } catch (RuntimeException ex) {
+                log.warn("AI analysis attempt {}/{} failed for review {}", attempt, maxAttempts, review.getId(), ex);
+                if (attempt < maxAttempts && !sleep(analysisProperties.aiRetryBackoff().toMillis())) {
+                    break;
+                }
+            }
+        }
+        log.warn("Falling back to heuristic analysis for review {}", review.getId());
+        return buildFallbackAnalysis(review);
+    }
+
+    private static boolean sleep(long millis) {
         try {
-            ReviewAnalysisResult result = aiService.analyzeReview(review);
-            return mapAnalysis(result);
-        } catch (RuntimeException ex) {
-            log.warn("AI analysis failed for  review from {}. Falling back.", review.getGuestName(), ex);
-            return buildFallbackAnalysis(review);
+            Thread.sleep(millis);
+            return true;
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            return false;
         }
     }
 

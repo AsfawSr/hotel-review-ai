@@ -10,6 +10,8 @@ public record AnalysisProperties(
         @DefaultValue("PT1M") Duration recoveryInterval,
         @DefaultValue("PT2M") Duration pendingGrace,
         @DefaultValue("PT10M") Duration processingTimeout,
-        @DefaultValue("20") int recoveryBatchSize
+        @DefaultValue("20") int recoveryBatchSize,
+        @DefaultValue("2") int aiMaxAttempts,
+        @DefaultValue("PT2S") Duration aiRetryBackoff
 ) {
 }
