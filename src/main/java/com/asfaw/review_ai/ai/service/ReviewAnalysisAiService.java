@@ -2,6 +2,10 @@ package com.asfaw.review_ai.ai.service;
 
 import com.asfaw.review_ai.ai.dto.ReviewAnalysisResult;
 import com.asfaw.review_ai.model.entity.Review;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.converter.BeanOutputConverter;
@@ -21,6 +25,13 @@ import java.util.List;
 @ConditionalOnBean(ChatClient.class)
 public class ReviewAnalysisAiService {
 
+    // LLMs often emit lowercase or off-list enum values; map them to defaults instead of failing the whole analysis.
+    static final ObjectMapper LENIENT_MAPPER = JsonMapper.builder()
+            .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+            .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
+
     private final ChatClient chatClient;
     private final RagContextService ragContextService;
 
@@ -29,7 +40,7 @@ public class ReviewAnalysisAiService {
 
     public ReviewAnalysisResult analyzeReview(Review review) {
         BeanOutputConverter<ReviewAnalysisResult> outputConverter =
-                new BeanOutputConverter<>(ReviewAnalysisResult.class);
+                new BeanOutputConverter<>(ReviewAnalysisResult.class, LENIENT_MAPPER);
 
         List<Document> policyDocuments = ragContextService.retrievePolicyContext(review.getReviewText());
         String contextBlock = ragContextService.buildContextBlock(policyDocuments);
@@ -44,7 +55,7 @@ public class ReviewAnalysisAiService {
                 .call()
                 .content();
 
-        return outputConverter.convert(rawResponse);
+        return AnalysisResultNormalizer.normalize(outputConverter.convert(rawResponse));
     }
 
     String buildUserPrompt(Review review) {
