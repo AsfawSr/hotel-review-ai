@@ -11,6 +11,7 @@ import com.asfaw.review_ai.web.dto.ReviewListItem;
 import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewAnalysisRepository reviewAnalysisRepository;
     private final RagContextService ragContextService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Review createReview(ReviewSubmissionRequest request) {
@@ -46,7 +48,9 @@ public class ReviewService {
         review.setAnalysisError(null);
         review.setAnalysisUpdatedAt(Instant.now());
 
-        return reviewRepository.save(review);
+        Review saved = reviewRepository.save(review);
+        eventPublisher.publishEvent(new ReviewAnalysisRequestedEvent(saved.getId()));
+        return saved;
     }
 
     @Transactional
@@ -61,7 +65,9 @@ public class ReviewService {
         review.setAnalysisStatus(AnalysisStatus.PENDING);
         review.setAnalysisError(null);
         review.setAnalysisUpdatedAt(Instant.now());
-        return reviewRepository.save(review);
+        Review saved = reviewRepository.save(review);
+        eventPublisher.publishEvent(new ReviewAnalysisRequestedEvent(saved.getId()));
+        return saved;
     }
 
     @Transactional(readOnly = true)
