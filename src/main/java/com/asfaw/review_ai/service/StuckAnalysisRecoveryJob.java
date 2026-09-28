@@ -5,6 +5,7 @@ import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -40,7 +41,14 @@ public class StuckAnalysisRecoveryJob {
                 AnalysisStatus.PENDING, now.minus(properties.pendingGrace()), PageRequest.of(0, properties.recoveryBatchSize()));
         if (!pendingIds.isEmpty()) {
             log.info("Dispatching {} pending review(s) for analysis", pendingIds.size());
-            pendingIds.forEach(processingService::processReviewAsync);
+            for (Long id : pendingIds) {
+                try {
+                    processingService.processReviewAsync(id);
+                } catch (TaskRejectedException ex) {
+                    log.warn("Analysis queue full; remaining pending reviews will be retried next run");
+                    break;
+                }
+            }
         }
     }
 }
