@@ -31,18 +31,13 @@ public class ReviewAnalysisProcessingService {
 
     @Async("analysisTaskExecutor")
     public void processReviewAsync(Long reviewId) {
+        if (reviewRepository.transitionStatus(reviewId, AnalysisStatus.PENDING, AnalysisStatus.PROCESSING, Instant.now()) == 0) {
+            return;
+        }
         Review review = reviewRepository.findById(reviewId).orElse(null);
         if (review == null) {
             return;
         }
-        if (review.getAnalysisStatus() == AnalysisStatus.PROCESSING || review.getAnalysisStatus() == AnalysisStatus.COMPLETED) {
-            return;
-        }
-
-        review.setAnalysisStatus(AnalysisStatus.PROCESSING);
-        review.setAnalysisError(null);
-        review.setAnalysisUpdatedAt(Instant.now());
-        reviewRepository.save(review);
 
         try {
             ReviewAnalysis analysis = generateAnalysis(review);
