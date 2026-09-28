@@ -12,12 +12,14 @@ AI-powered Hotel Guest Review Analyzer System built with Spring Boot 3, Spring A
 
 - `DB_URL` (e.g., `jdbc:postgresql://localhost:5432/hotel_review_ai`)
 - `DB_USERNAME`
-- `DB_PASSWORD`
+- `DB_PASSWORD` (required)
 - `OLLAMA_BASE_URL` (default: `http://localhost:11434`)
 - `OLLAMA_CHAT_MODEL` (default: `llama3.2`)
 - `OLLAMA_EMBEDDING_MODEL` (default: `nomic-embed-text`)
 - `APP_ADMIN_USERNAME` (default: `admin`)
-- `APP_ADMIN_PASSWORD` (default: `admin123`)
+- `APP_ADMIN_PASSWORD` (required)
+
+See `.env.example` for a template.
 
 ## Build
 
