@@ -5,6 +5,7 @@ import com.asfaw.review_ai.ai.service.ReviewAnalysisAiService;
 import com.asfaw.review_ai.config.AnalysisProperties;
 import com.asfaw.review_ai.model.entity.Review;
 import com.asfaw.review_ai.model.entity.ReviewAnalysis;
+import com.asfaw.review_ai.model.enums.AnalysisSource;
 import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
@@ -62,6 +63,7 @@ class ReviewAnalysisProcessingServiceTest {
 
         verify(aiService, times(2)).analyzeReview(review);
         assertThat(completedAnalysis().getManagerResponse()).isEqualTo("Thanks!");
+        assertThat(completedAnalysis().getSource()).isEqualTo(AnalysisSource.AI);
     }
 
     @Test
@@ -72,6 +74,7 @@ class ReviewAnalysisProcessingServiceTest {
 
         verify(aiService, times(2)).analyzeReview(review);
         assertThat(completedAnalysis().getTopics()).contains(Topic.STAFF);
+        assertThat(completedAnalysis().getSource()).isEqualTo(AnalysisSource.FALLBACK);
     }
 
     private ReviewAnalysis completedAnalysis() {

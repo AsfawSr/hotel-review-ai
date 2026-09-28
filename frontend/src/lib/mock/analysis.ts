@@ -92,6 +92,8 @@ export function analyzeReview(guestName: string, reviewText: string, rating: num
     topics,
     mainTopic: topics[0],
     managerResponse: composeManagerResponse(guestName, sentiment, topics[0]),
+    // The demo runs the backend's keyword heuristic, so label it honestly.
+    source: "FALLBACK",
     createdAt: now,
     updatedAt: now,
   };

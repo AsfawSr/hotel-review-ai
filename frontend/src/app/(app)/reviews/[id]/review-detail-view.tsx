@@ -84,6 +84,7 @@ function GuestReviewCard({ review }: { review: Review }) {
 
 function AnalysisCard({ review }: { review: Review }) {
   const analysis = review.analysis;
+  const retry = useRetryAnalysis();
   const copy = async () => {
     if (!analysis) return;
     await navigator.clipboard.writeText(analysis.managerResponse);
@@ -120,6 +121,31 @@ function AnalysisCard({ review }: { review: Review }) {
               <Field label="Sentiment score">
                 <ScoreBar score={analysis.sentimentScore} />
               </Field>
+              {analysis.source && (
+                <Field label="Source">
+                  {analysis.source === "AI" ? (
+                    <Badge>AI model</Badge>
+                  ) : (
+                    <span className="inline-flex items-center gap-2">
+                      <Badge
+                        className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                        title="The LLM was unavailable; this result comes from keyword heuristics."
+                      >
+                        Heuristic fallback
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        disabled={retry.isPending}
+                        onClick={() => retry.mutate(review.id, { onSuccess: () => toast.success("AI analysis re-queued.") })}
+                      >
+                        <RotateCwIcon />
+                        Re-run AI
+                      </Button>
+                    </span>
+                  )}
+                </Field>
+              )}
               <Field label="Main topic">{humanize(analysis.mainTopic)}</Field>
               <Field label="Topics">
                 <span className="flex flex-wrap justify-end gap-1">

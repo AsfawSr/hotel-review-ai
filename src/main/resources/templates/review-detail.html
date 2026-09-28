@@ -60,6 +60,11 @@
                     <div th:if="${review.analysis != null}">
                         <div class="mb-2"><strong>Sentiment:</strong> <span th:text="${review.analysis.sentiment}">NEUTRAL</span></div>
                         <div class="mb-2"><strong>Sentiment Score:</strong> <span th:text="${review.analysis.sentimentScore}">50</span></div>
+                        <div class="mb-2" th:if="${review.analysis.source != null}"><strong>Source:</strong>
+                            <span class="badge text-bg-primary" th:if="${review.analysis.source.name() == 'AI'}">AI model</span>
+                            <span class="badge text-bg-warning" th:if="${review.analysis.source.name() == 'FALLBACK'}"
+                                  title="The LLM was unavailable; this result comes from keyword heuristics. Retry to re-run AI analysis.">Heuristic fallback</span>
+                        </div>
                         <div class="mb-2"><strong>Main Topic:</strong> <span th:text="${review.analysis.mainTopic}">CLEANLINESS</span></div>
                         <div class="mb-2"><strong>Topics:</strong>
                             <span th:each="topic : ${review.analysis.topics}" class="badge text-bg-light border me-1" th:text="${topic}">TOPIC</span>

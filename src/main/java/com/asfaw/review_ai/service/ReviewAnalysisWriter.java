@@ -33,6 +33,7 @@ public class ReviewAnalysisWriter {
             target.setSentimentScore(result.getSentimentScore());
             target.setMainTopic(result.getMainTopic());
             target.setManagerResponse(result.getManagerResponse());
+            target.setSource(result.getSource());
             target.getTopics().clear();
             target.getTopics().addAll(result.getTopics());
 

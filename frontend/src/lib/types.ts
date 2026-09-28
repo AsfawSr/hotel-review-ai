@@ -25,12 +25,15 @@ export type AnalysisStatus = (typeof ANALYSIS_STATUSES)[number];
 
 export const PAGE_SIZES = [10, 20, 50] as const;
 
+export type AnalysisSource = "AI" | "FALLBACK";
+
 export interface ReviewAnalysis {
   sentiment: Sentiment;
   sentimentScore: number;
   topics: Topic[];
   mainTopic: Topic;
   managerResponse: string;
+  source: AnalysisSource | null;
   createdAt: string;
   updatedAt: string;
 }

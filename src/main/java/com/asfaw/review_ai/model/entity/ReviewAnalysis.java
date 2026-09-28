@@ -1,5 +1,6 @@
 package com.asfaw.review_ai.model.entity;
 
+import com.asfaw.review_ai.model.enums.AnalysisSource;
 import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
 import jakarta.persistence.CollectionTable;
@@ -75,6 +76,11 @@ public class ReviewAnalysis {
     @Size(max = 4000)
     @Column(name = "manager_response", nullable = false, length = 4000)
     private String managerResponse;
+
+    // Nullable for rows created before this column existed.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "analysis_source", length = 20)
+    private AnalysisSource source;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

@@ -5,6 +5,7 @@ import com.asfaw.review_ai.ai.service.ReviewAnalysisAiService;
 import com.asfaw.review_ai.config.AnalysisProperties;
 import com.asfaw.review_ai.model.entity.Review;
 import com.asfaw.review_ai.model.entity.ReviewAnalysis;
+import com.asfaw.review_ai.model.enums.AnalysisSource;
 import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
@@ -95,6 +96,7 @@ public class ReviewAnalysisProcessingService {
 
         Topic mainTopic = result.mainTopic() == null ? topics.iterator().next() : result.mainTopic();
         analysis.setMainTopic(mainTopic);
+        analysis.setSource(AnalysisSource.AI);
         return analysis;
     }
 
@@ -114,6 +116,7 @@ public class ReviewAnalysisProcessingService {
         analysis.setTopics(topics);
         analysis.setMainTopic(topics.iterator().next());
         analysis.setManagerResponse(defaultManagerResponse(null));
+        analysis.setSource(AnalysisSource.FALLBACK);
         return analysis;
     }
 

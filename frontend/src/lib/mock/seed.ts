@@ -90,6 +90,7 @@ export function buildSeedReviews(now: Date = new Date()): Review[] {
         topics: entry.topics,
         mainTopic: entry.topics[0],
         managerResponse: composeManagerResponse(entry.guestName, entry.sentiment, entry.topics[0]),
+        source: "AI",
         createdAt: analyzedAt,
         updatedAt: analyzedAt,
       },
