@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useCurrentUser, useLogout } from "@/lib/data/hooks";
 import { cn } from "@/lib/utils";
 
@@ -53,21 +54,24 @@ export function Navbar() {
         </Link>
         <nav className="hidden flex-1 items-center gap-1 md:flex">{links}</nav>
         <div className="ml-auto hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           {user && <span className="text-sm text-muted-foreground">{user.username}</span>}
           <Button variant="outline" size="sm" onClick={handleLogout} disabled={logout.isPending}>
             <LogOutIcon />
             Logout
           </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="ml-auto md:hidden"
-          aria-label="Toggle navigation"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <XIcon /> : <MenuIcon />}
-        </Button>
+        <div className="ml-auto flex items-center md:hidden">
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Toggle navigation"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <XIcon /> : <MenuIcon />}
+          </Button>
+        </div>
       </div>
       {open && (
         <nav className="flex flex-col gap-1 border-t px-4 py-3 md:hidden">
