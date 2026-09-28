@@ -44,3 +44,7 @@ Pgvector auto-configuration is disabled by default to prevent startup failures w
 - Submit review: `http://localhost:8080/reviews/submit`
 
 Reviews run AI analysis automatically when the chat model is configured. If AI is disabled, the review is still saved and marked as Pending.
+
+## Next.js Frontend
+
+A Next.js frontend lives in `frontend/`. It runs standalone with mock data (for the Vercel demo) or against this backend. See `frontend/README.md`.
