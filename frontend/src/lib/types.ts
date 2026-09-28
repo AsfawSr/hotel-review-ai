@@ -34,6 +34,8 @@ export interface ReviewAnalysis {
   mainTopic: Topic;
   managerResponse: string;
   source: AnalysisSource | null;
+  modelName: string | null;
+  promptVersion: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -91,6 +91,8 @@ export function buildSeedReviews(now: Date = new Date()): Review[] {
         mainTopic: entry.topics[0],
         managerResponse: composeManagerResponse(entry.guestName, entry.sentiment, entry.topics[0]),
         source: "AI",
+        modelName: "llama3.2:latest",
+        promptVersion: "review-analysis-v2",
         createdAt: analyzedAt,
         updatedAt: analyzedAt,
       },

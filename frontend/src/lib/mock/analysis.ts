@@ -94,6 +94,8 @@ export function analyzeReview(guestName: string, reviewText: string, rating: num
     managerResponse: composeManagerResponse(guestName, sentiment, topics[0]),
     // The demo runs the backend's keyword heuristic, so label it honestly.
     source: "FALLBACK",
+    modelName: "heuristic",
+    promptVersion: null,
     createdAt: now,
     updatedAt: now,
   };

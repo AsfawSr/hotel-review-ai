@@ -1,5 +1,6 @@
 package com.asfaw.review_ai.service;
 
+import com.asfaw.review_ai.ai.dto.AiAnalysis;
 import com.asfaw.review_ai.ai.dto.ReviewAnalysisResult;
 import com.asfaw.review_ai.ai.service.ReviewAnalysisAiService;
 import com.asfaw.review_ai.config.AnalysisProperties;
@@ -82,8 +83,12 @@ public class ReviewAnalysisProcessingService {
         }
     }
 
-    private ReviewAnalysis mapAnalysis(ReviewAnalysisResult result) {
+    private ReviewAnalysis mapAnalysis(AiAnalysis aiAnalysis) {
+        ReviewAnalysisResult result = aiAnalysis.result();
         ReviewAnalysis analysis = new ReviewAnalysis();
+        analysis.setPolicyContext(aiAnalysis.policyContext());
+        analysis.setModelName(aiAnalysis.model());
+        analysis.setPromptVersion(aiAnalysis.promptVersion());
         analysis.setSentiment(result.sentiment() == null ? Sentiment.NEUTRAL : result.sentiment());
         analysis.setSentimentScore(result.sentimentScore() == null ? 50 : result.sentimentScore());
         analysis.setManagerResponse(defaultManagerResponse(result.managerResponse()));
@@ -117,6 +122,7 @@ public class ReviewAnalysisProcessingService {
         analysis.setMainTopic(topics.iterator().next());
         analysis.setManagerResponse(defaultManagerResponse(null));
         analysis.setSource(AnalysisSource.FALLBACK);
+        analysis.setModelName("heuristic");
         return analysis;
     }
 

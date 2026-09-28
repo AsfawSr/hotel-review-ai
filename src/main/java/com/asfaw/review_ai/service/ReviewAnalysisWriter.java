@@ -34,6 +34,9 @@ public class ReviewAnalysisWriter {
             target.setMainTopic(result.getMainTopic());
             target.setManagerResponse(result.getManagerResponse());
             target.setSource(result.getSource());
+            target.setPolicyContext(truncate(result.getPolicyContext(), ReviewAnalysis.MAX_POLICY_CONTEXT_LENGTH));
+            target.setModelName(result.getModelName());
+            target.setPromptVersion(result.getPromptVersion());
             target.getTopics().clear();
             target.getTopics().addAll(result.getTopics());
 
@@ -44,6 +47,10 @@ public class ReviewAnalysisWriter {
     @Transactional
     public void fail(Long reviewId, String error) {
         reviewRepository.findById(reviewId).ifPresent(review -> markStatus(review, AnalysisStatus.FAILED, error));
+    }
+
+    private static String truncate(String value, int max) {
+        return value == null || value.length() <= max ? value : value.substring(0, max);
     }
 
     private static void markStatus(Review review, AnalysisStatus status, String error) {

@@ -1,6 +1,5 @@
 package com.asfaw.review_ai.service;
 
-import com.asfaw.review_ai.ai.service.RagContextService;
 import com.asfaw.review_ai.model.entity.Review;
 import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.model.enums.Sentiment;
@@ -10,7 +9,6 @@ import com.asfaw.review_ai.repository.ReviewRepository;
 import com.asfaw.review_ai.web.dto.ReviewListItem;
 import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.document.Document;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -35,7 +33,6 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ReviewAnalysisRepository reviewAnalysisRepository;
-    private final RagContextService ragContextService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -237,9 +234,8 @@ public class ReviewService {
             review.getAnalysis().getTopics().size();
         }
 
-        List<Document> documents = ragContextService.retrievePolicyContext(review.getReviewText());
-        String policyContext = ragContextService.buildContextBlock(documents);
-        boolean ragEnabled = !documents.isEmpty();
+        String policyContext = review.getAnalysis() == null ? null : review.getAnalysis().getPolicyContext();
+        boolean ragEnabled = policyContext != null;
 
         return new ReviewDetail(review, policyContext, ragEnabled);
     }

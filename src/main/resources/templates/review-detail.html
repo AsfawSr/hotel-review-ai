@@ -65,6 +65,10 @@
                             <span class="badge text-bg-warning" th:if="${review.analysis.source.name() == 'FALLBACK'}"
                                   title="The LLM was unavailable; this result comes from keyword heuristics. Retry to re-run AI analysis.">Heuristic fallback</span>
                         </div>
+                        <div class="mb-2 small text-muted" th:if="${review.analysis.modelName != null}">
+                            Model: <span th:text="${review.analysis.modelName}">llama3.2</span>
+                            <span th:if="${review.analysis.promptVersion != null}" th:text="' · prompt ' + ${review.analysis.promptVersion}"></span>
+                        </div>
                         <div class="mb-2"><strong>Main Topic:</strong> <span th:text="${review.analysis.mainTopic}">CLEANLINESS</span></div>
                         <div class="mb-2"><strong>Topics:</strong>
                             <span th:each="topic : ${review.analysis.topics}" class="badge text-bg-light border me-1" th:text="${topic}">TOPIC</span>
@@ -83,7 +87,7 @@
         <div class="card-body">
             <h2 class="h6 text-uppercase text-muted">Policy Context (RAG)</h2>
             <div th:if="${!ragEnabled}" class="text-muted">
-                Policy context is not available. Enable pgvector and set `app.rag.enabled=true`.
+                No policy excerpts were used for this analysis. To enable RAG, set up pgvector and set `app.rag.enabled=true`.
             </div>
             <pre th:if="${ragEnabled}" class="mb-0" th:text="${policyContext}">Policy context</pre>
         </div>

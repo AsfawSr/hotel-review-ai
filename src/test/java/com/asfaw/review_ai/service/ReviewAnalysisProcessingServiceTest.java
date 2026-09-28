@@ -1,5 +1,6 @@
 package com.asfaw.review_ai.service;
 
+import com.asfaw.review_ai.ai.dto.AiAnalysis;
 import com.asfaw.review_ai.ai.dto.ReviewAnalysisResult;
 import com.asfaw.review_ai.ai.service.ReviewAnalysisAiService;
 import com.asfaw.review_ai.config.AnalysisProperties;
@@ -57,13 +58,18 @@ class ReviewAnalysisProcessingServiceTest {
     void retriesOnceThenUsesAiResult() {
         when(aiService.analyzeReview(review))
                 .thenThrow(new RuntimeException("timeout"))
-                .thenReturn(new ReviewAnalysisResult(Sentiment.POSITIVE, 90, Set.of(Topic.STAFF), Topic.STAFF, "Thanks!"));
+                .thenReturn(new AiAnalysis(
+                        new ReviewAnalysisResult(Sentiment.POSITIVE, 90, Set.of(Topic.STAFF), Topic.STAFF, "Thanks!"),
+                        "Title: Staff policy", "llama3.2", "v-test"));
 
         service.processReviewAsync(1L);
 
         verify(aiService, times(2)).analyzeReview(review);
         assertThat(completedAnalysis().getManagerResponse()).isEqualTo("Thanks!");
         assertThat(completedAnalysis().getSource()).isEqualTo(AnalysisSource.AI);
+        assertThat(completedAnalysis().getPolicyContext()).isEqualTo("Title: Staff policy");
+        assertThat(completedAnalysis().getModelName()).isEqualTo("llama3.2");
+        assertThat(completedAnalysis().getPromptVersion()).isEqualTo("v-test");
     }
 
     @Test

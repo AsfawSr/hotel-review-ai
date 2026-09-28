@@ -82,6 +82,18 @@ public class ReviewAnalysis {
     @Column(name = "analysis_source", length = 20)
     private AnalysisSource source;
 
+    public static final int MAX_POLICY_CONTEXT_LENGTH = 50_000;
+
+    /** Policy excerpts that were actually sent to the model (null when RAG returned nothing). */
+    @Column(name = "policy_context", length = MAX_POLICY_CONTEXT_LENGTH)
+    private String policyContext;
+
+    @Column(name = "model_name", length = 100)
+    private String modelName;
+
+    @Column(name = "prompt_version", length = 40)
+    private String promptVersion;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

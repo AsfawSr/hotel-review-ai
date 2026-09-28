@@ -167,6 +167,16 @@ function AnalysisCard({ review }: { review: Review }) {
               </div>
               <p className="text-sm leading-relaxed">{analysis.managerResponse}</p>
             </div>
+            {analysis.modelName && (
+              <p className="text-xs text-muted-foreground">
+                Model: <span className="font-mono">{analysis.modelName}</span>
+                {analysis.promptVersion && (
+                  <>
+                    {" "}· prompt <span className="font-mono">{analysis.promptVersion}</span>
+                  </>
+                )}
+              </p>
+            )}
           </div>
         )}
       </CardContent>
@@ -227,7 +237,7 @@ export function ReviewDetailView({ id }: { id: number }) {
                 <BookOpenIcon className="size-4 text-primary" />
                 Policy context (RAG)
               </CardTitle>
-              <CardDescription>Hotel policies retrieved from pgvector to ground the manager response</CardDescription>
+              <CardDescription>Hotel policies that were sent to the model when this review was analyzed</CardDescription>
               <CardAction>
                 <Badge variant={data.ragEnabled ? "default" : "outline"}>{data.ragEnabled ? "Enabled" : "Disabled"}</Badge>
               </CardAction>
@@ -239,7 +249,8 @@ export function ReviewDetailView({ id }: { id: number }) {
                 </pre>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Policy context is not available. Enable pgvector and set <code>app.rag.enabled=true</code>.
+                  No policy excerpts were used for this analysis. To enable RAG, set up pgvector and set{" "}
+                  <code>app.rag.enabled=true</code>.
                 </p>
               )}
             </CardContent>

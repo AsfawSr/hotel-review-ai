@@ -1,4 +1,4 @@
-import { analyzeReview, detectTopics } from "@/lib/mock/analysis";
+import { analyzeReview } from "@/lib/mock/analysis";
 import { buildPolicyContext } from "@/lib/mock/policies";
 import { buildSeedReviews } from "@/lib/mock/seed";
 import type {
@@ -176,8 +176,11 @@ export const mockDataSource: DataSource = {
 
   getReview: async (id) => {
     const review = withState((s) => findReview(s, id));
-    const topics = review.analysis?.topics ?? detectTopics(review.reviewText.toLowerCase());
-    return delay({ review, policyContext: buildPolicyContext(topics), ragEnabled: true });
+    // Mirrors the backend: only AI analyses are grounded in retrieved policies.
+    if (!review.analysis || review.analysis.source === "FALLBACK") {
+      return delay({ review, policyContext: "", ragEnabled: false });
+    }
+    return delay({ review, policyContext: buildPolicyContext(review.analysis.topics), ragEnabled: true });
   },
 
   submitReview: async (submission) => {

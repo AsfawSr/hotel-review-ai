@@ -1,5 +1,6 @@
 package com.asfaw.review_ai.ai.service;
 
+import com.asfaw.review_ai.ai.dto.AiAnalysis;
 import com.asfaw.review_ai.ai.dto.ReviewAnalysisResult;
 import com.asfaw.review_ai.model.entity.Review;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -32,13 +33,19 @@ public class ReviewAnalysisAiService {
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .build();
 
+    // Bump when the system prompt changes so stored analyses stay traceable.
+    public static final String PROMPT_VERSION = "review-analysis-v2";
+
     private final ChatClient chatClient;
     private final RagContextService ragContextService;
 
     @Value("classpath:prompts/review-analysis-system.st")
     private Resource reviewAnalysisSystemPrompt;
 
-    public ReviewAnalysisResult analyzeReview(Review review) {
+    @Value("${spring.ai.ollama.chat.options.model:unknown}")
+    private String modelName;
+
+    public AiAnalysis analyzeReview(Review review) {
         BeanOutputConverter<ReviewAnalysisResult> outputConverter =
                 new BeanOutputConverter<>(ReviewAnalysisResult.class, LENIENT_MAPPER);
 
@@ -55,7 +62,8 @@ public class ReviewAnalysisAiService {
                 .call()
                 .content();
 
-        return AnalysisResultNormalizer.normalize(outputConverter.convert(rawResponse));
+        ReviewAnalysisResult result = AnalysisResultNormalizer.normalize(outputConverter.convert(rawResponse));
+        return new AiAnalysis(result, policyDocuments.isEmpty() ? null : contextBlock, modelName, PROMPT_VERSION);
     }
 
     String buildUserPrompt(Review review) {
