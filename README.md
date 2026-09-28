@@ -1,6 +1,50 @@
 # HotelReviewAI
 
-AI-powered Hotel Guest Review Analyzer System built with Spring Boot 3, Spring AI, and PostgreSQL.
+AI-powered hotel guest review analyzer built with Spring Boot 3, Spring AI, PostgreSQL/pgvector and a Next.js frontend.
+
+**Live demo:** https://hotel-review-two.vercel.app (runs on in-browser sample data; demo login is pre-filled)
+
+![Landing page](docs/screenshots/landing.png)
+
+## Features
+
+- **Sentiment scoring**: POSITIVE / NEUTRAL / NEGATIVE with a 0–100 score
+- **Topic detection**: 13 hospitality topics (cleanliness, staff, food, noise, check-in, …)
+- **Manager responses**: a personalized reply draft for every review
+- **RAG policy grounding**: relevant hotel policies retrieved from pgvector are injected into the prompt
+- **Async pipeline**: background workers with status tracking (Pending → Processing → Completed/Failed), retry, and a heuristic fallback when the LLM is unavailable
+- **Analytics dashboard**: sentiment, topic and rating charts, filterable/paginated review list
+
+## Screenshots
+
+| Dashboard | Dashboard (dark) |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Dashboard dark mode](docs/screenshots/dashboard-dark.png) |
+
+| Reviews | Review detail |
+|---|---|
+| ![Reviews](docs/screenshots/reviews.png) | ![Review detail](docs/screenshots/review-detail.png) |
+
+## Architecture
+
+```mermaid
+flowchart LR
+  U[Browser] --> FE[Next.js frontend<br/>Vercel]
+  FE -- /api/v1 --> BE[Spring Boot<br/>Security · JPA · @Async]
+  BE --> DB[(PostgreSQL + pgvector)]
+  BE -- Spring AI --> LLM[Ollama<br/>llama3.2 · nomic-embed-text]
+```
+
+Analysis flow: review submitted → queued on an async worker → similar policies retrieved from pgvector → LLM returns structured JSON (sentiment, score, topics, main topic, reply) → stored and shown on the dashboard.
+
+## Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| Backend | Java 21, Spring Boot 3.4, Spring Security, Spring Data JPA, PostgreSQL |
+| AI | Spring AI 1.0, Ollama (llama3.2, nomic-embed-text), pgvector (HNSW, cosine) |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, TanStack Query, Recharts |
+| Hosting | Vercel (frontend) |
 
 ## Quick Start (Local)
 
@@ -37,7 +81,7 @@ mvnw.cmd spring-boot:run
 
 Pgvector auto-configuration is disabled by default to prevent startup failures when the extension is not installed. Enable it by removing the exclude in `src/main/resources/application.yaml` and setting `app.rag.enabled=true`.
 
-## Web UI
+## Web UI (Thymeleaf, served by Spring Boot)
 
 - Dashboard: `http://localhost:8080/dashboard`
 - Reviews: `http://localhost:8080/reviews`
@@ -47,4 +91,10 @@ Reviews run AI analysis automatically when the chat model is configured. If AI i
 
 ## Next.js Frontend
 
-A Next.js frontend lives in `frontend/`. It runs standalone with mock data (for the Vercel demo) or against this backend. See `frontend/README.md`.
+A Next.js frontend lives in `frontend/`. It runs standalone with mock data (the live Vercel demo) or against this backend. See [frontend/README.md](frontend/README.md).
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
