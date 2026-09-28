@@ -50,4 +50,21 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecif
                          @Param("expected") AnalysisStatus expected,
                          @Param("target") AnalysisStatus target,
                          @Param("now") Instant now);
+
+    @Transactional
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            update Review r
+               set r.analysisStatus = :target, r.analysisUpdatedAt = :now, r.updatedAt = :now
+             where r.analysisStatus = :expected and r.analysisUpdatedAt < :cutoff
+            """)
+    int transitionStaleStatus(@Param("expected") AnalysisStatus expected,
+                              @Param("target") AnalysisStatus target,
+                              @Param("cutoff") Instant cutoff,
+                              @Param("now") Instant now);
+
+    @Query("select r.id from Review r where r.analysisStatus = :status and r.analysisUpdatedAt < :cutoff order by r.analysisUpdatedAt asc")
+    List<Long> findIdsByStatusUpdatedBefore(@Param("status") AnalysisStatus status,
+                                            @Param("cutoff") Instant cutoff,
+                                            Pageable pageable);
 }

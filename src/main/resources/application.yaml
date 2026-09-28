@@ -62,6 +62,11 @@ app:
     enabled: false
     top-k: 5
     similarity-threshold: 0.7
+  analysis:
+    recovery-interval: PT1M
+    pending-grace: PT2M
+    processing-timeout: PT10M
+    recovery-batch-size: 20
 
 server:
   port: ${SERVER_PORT:8080}
