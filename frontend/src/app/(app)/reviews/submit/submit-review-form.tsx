@@ -51,7 +51,7 @@ export function SubmitReviewForm() {
 
   return (
     <> one by one or import a CSV. Everything is
-      <PageHeader title="Submit review" description="Add guest feedback. It will be analyzed asynchronously by the AI pipeline." />
+      <PageHeader title="Submit review" description="Add guest feedback one by one or import a CSV. Everything is analyzed asynchronously by the AI pipeline." />
       <Card className="max-w-2xl">
         <CardHeader>
           <CardTitle>Guest feedback</CardTitle>
