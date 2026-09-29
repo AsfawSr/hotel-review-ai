@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/policies/**").authenticated()
                         .requestMatchers("/api/v1/policies/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/reviews/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf
