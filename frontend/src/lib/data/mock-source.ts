@@ -222,6 +222,7 @@ export const mockDataSource: DataSource = {
 
   getAiStatus: () =>
     delay({
+      provider: "ollama",
       baseUrl: "in-browser (demo)",
       model: "llama3.2:latest (simulated)",
       reachable: true,

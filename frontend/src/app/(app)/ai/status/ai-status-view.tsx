@@ -46,7 +46,7 @@ export function AiStatusView() {
         <div className="max-w-3xl space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Ollama</CardTitle>
+              <CardTitle>{data.provider === "openai" ? "OpenAI-compatible API" : "Ollama"}</CardTitle>
               <CardDescription>{data.message}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -55,6 +55,8 @@ export function AiStatusView() {
                 <Check ok={data.modelAvailable} label="Chat model available" />
               </div>
               <dl className="grid gap-2 text-sm sm:grid-cols-[140px_1fr]">
+                <dt className="text-muted-foreground">Provider</dt>
+                <dd className="font-mono text-xs">{data.provider}</dd>
                 <dt className="text-muted-foreground">Base URL</dt>
                 <dd className="font-mono text-xs">{data.baseUrl}</dd>
                 <dt className="text-muted-foreground">Chat model</dt>

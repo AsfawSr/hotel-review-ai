@@ -112,6 +112,8 @@ export interface DashboardMetrics {
 }
 
 export interface AiStatus {
+  /** "ollama" or "openai" (any OpenAI-compatible API). */
+  provider: string;
   baseUrl: string;
   model: string;
   reachable: boolean;
