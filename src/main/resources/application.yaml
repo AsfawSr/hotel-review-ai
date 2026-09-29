@@ -13,12 +13,20 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
         format_sql: true
     show-sql: false
+
+  flyway:
+    locations: classpath:db/migration
+    # Databases previously managed by ddl-auto have no history table; treat them as already at V1.
+    baseline-on-migrate: true
+    baseline-version: 1
+    placeholders:
+      vector_dimensions: ${PGVECTOR_DIMENSIONS:768}
 
   thymeleaf:
     cache: false

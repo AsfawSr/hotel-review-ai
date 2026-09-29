@@ -7,7 +7,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      # Flyway builds the schema; validate proves migrations and entities agree.
+      ddl-auto: validate
 
   security:
     user:
