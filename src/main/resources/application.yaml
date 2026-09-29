@@ -45,8 +45,25 @@ spring:
 
   ai:
     model:
-      chat: ollama
-      embedding: ollama
+      # ollama (local, default) or openai (any OpenAI-compatible API, e.g. OpenAI or Groq).
+      chat: ${AI_CHAT_PROVIDER:ollama}
+      embedding: ${AI_EMBEDDING_PROVIDER:ollama}
+      image: none
+      audio:
+        speech: none
+        transcription: none
+      moderation: none
+
+    openai:
+      api-key: ${OPENAI_API_KEY:not-configured}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        options:
+          model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
+          temperature: ${AI_TEMPERATURE:0.2}
+      embedding:
+        options:
+          model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
 
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434}

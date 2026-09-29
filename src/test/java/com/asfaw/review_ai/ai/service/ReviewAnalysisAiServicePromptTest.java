@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ReviewAnalysisAiServicePromptTest {
 
-    private final ReviewAnalysisAiService service = new ReviewAnalysisAiService(null, null);
+    private final ReviewAnalysisAiService service = new ReviewAnalysisAiService(null, null, null);
 
     @Test
     void wrapsReviewInDelimitersAndNeutralizesInjectedTags() {

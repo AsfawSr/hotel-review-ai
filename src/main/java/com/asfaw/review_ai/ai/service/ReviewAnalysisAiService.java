@@ -2,6 +2,7 @@ package com.asfaw.review_ai.ai.service;
 
 import com.asfaw.review_ai.ai.dto.AiAnalysis;
 import com.asfaw.review_ai.ai.dto.ReviewAnalysisResult;
+import com.asfaw.review_ai.config.AiModelInfo;
 import com.asfaw.review_ai.model.entity.Review;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -38,12 +39,10 @@ public class ReviewAnalysisAiService {
 
     private final ChatClient chatClient;
     private final RagContextService ragContextService;
+    private final AiModelInfo modelInfo;
 
     @Value("classpath:prompts/review-analysis-system.st")
     private Resource reviewAnalysisSystemPrompt;
-
-    @Value("${spring.ai.ollama.chat.options.model:unknown}")
-    private String modelName;
 
     public AiAnalysis analyzeReview(Review review) {
         BeanOutputConverter<ReviewAnalysisResult> outputConverter =
@@ -63,7 +62,7 @@ public class ReviewAnalysisAiService {
                 .content();
 
         ReviewAnalysisResult result = AnalysisResultNormalizer.normalize(outputConverter.convert(rawResponse));
-        return new AiAnalysis(result, policyDocuments.isEmpty() ? null : contextBlock, modelName, PROMPT_VERSION);
+        return new AiAnalysis(result, policyDocuments.isEmpty() ? null : contextBlock, modelInfo.label(), PROMPT_VERSION);
     }
 
     String buildUserPrompt(Review review) {
