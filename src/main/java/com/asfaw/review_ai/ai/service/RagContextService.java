@@ -9,6 +9,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,7 @@ public class RagContextService {
         Map<String, Object> metadata = document.getMetadata();
         String title = metadata.getOrDefault("title", "Policy").toString();
         String category = metadata.getOrDefault("category", "General").toString();
-        return "Title: " + title + "\nCategory: " + category + "\nContent: " + document.getText();
+        String relevance = document.getScore() == null ? "" : String.format(Locale.ROOT, "\nRelevance: %.2f", document.getScore());
+        return "Title: " + title + "\nCategory: " + category + relevance + "\nContent: " + document.getText();
     }
 }
