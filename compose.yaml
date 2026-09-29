@@ -51,6 +51,8 @@ services:
       OLLAMA_BASE_URL: http://ollama:11434
       OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-llama3.2:latest}
       OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-}
     ports:
       - "8080:8080"
 

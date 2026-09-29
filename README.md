@@ -13,7 +13,12 @@ AI-powered hotel guest review analyzer built with Spring Boot 3, Spring AI, Post
 - **Manager responses**: a personalized reply draft for every review
 - **RAG policy grounding**: relevant hotel policies retrieved from pgvector are injected into the prompt
 - **Async pipeline**: background workers with status tracking (Pending → Processing → Completed/Failed), retry, and a heuristic fallback when the LLM is unavailable
-- **Analytics dashboard**: sentiment, topic and rating charts, filterable/paginated review list
+- **Analytics dashboard**: sentiment, topic and rating charts, weekly trends, and an "unanswered negative reviews" alert
+- **Reply workflow**: AI draft → edit → approve → mark as sent, with full revision history
+- **Multi-language**: the model detects the review language and writes the reply in the guest's language
+- **Search, import and export**: keyword search plus filters, CSV import with per-row errors, CSV export of any filtered view
+- **Users and roles**: `ADMIN` (users, policies), `MANAGER` (submit, reply), `VIEWER` (read-only)
+- **Alerts**: optional Slack-compatible webhook for new negative reviews
 
 ## Screenshots
 
@@ -80,6 +85,9 @@ All settings are environment variables; see [`.env.example`](.env.example) for t
 | `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_CHAT_MODEL` | OpenAI-compatible provider settings |
 | `PGVECTOR_DIMENSIONS` | Must match the embedding model (768 for `nomic-embed-text`, 1536 for `text-embedding-3-small`) |
 | `HTTP_CONNECT_TIMEOUT`, `HTTP_READ_TIMEOUT` | Timeouts for AI calls |
+| `ALERT_WEBHOOK_URL`, `APP_PUBLIC_URL` | Optional Slack-compatible webhook for negative reviews, and the frontend URL used in its links |
+
+Login and review submission are rate limited per client (10 and 30 per minute; `app.rate-limit.*`). The bootstrap admin from `APP_ADMIN_*` is created on first start; further users are managed on the **Users** page.
 
 ### RAG over hotel policies
 
@@ -92,6 +100,13 @@ Run with the `rag` profile (e.g. `SPRING_PROFILES_ACTIVE=dev,rag`). It enables t
 - **Validated output:** lenient JSON parsing and normalization keep sentiment, score and topics consistent.
 - **Prompt-injection hardening:** guest text is delimited and treated as untrusted data.
 
+- Highlights:
+  - `GET /reviews?q=&sentiment=&topic=…` searches and filters the review list.
+  - `GET /reviews/export` returns the same filtered view as CSV. Cells are protected against formula injection.
+  - `POST /reviews/import` accepts a multipart CSV with columns `guestName`, `reviewText` and `rating`; the limit is 500 rows / 2 MB.
+  - `GET|PUT /reviews/{id}/reply`, `POST …/reply/approve` and `POST …/reply/sent` drive the reply workflow.
+  - `GET /dashboard/trends?weeks=12` returns weekly trends.
+  - `/users` handles user management and is limited to `ADMIN`.
 ## API
 
 - JSON API under `/api/v1` (reviews, dashboard, policies, AI status, auth). Session cookie auth with CSRF via the `XSRF-TOKEN` cookie / `X-XSRF-TOKEN` header; errors use RFC 9457 problem details.
