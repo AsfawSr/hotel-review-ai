@@ -13,3 +13,14 @@ export const humanize = (value: string | null | undefined) =>
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(" ")
     : "—";
+
+const languageNames = new Intl.DisplayNames(["en"], { type: "language", fallback: "code" });
+
+/** "fr" -> "French"; unknown codes are shown as-is. */
+export const languageName = (code: string) => {
+  try {
+    return languageNames.of(code) ?? code;
+  } catch {
+    return code;
+  }
+};

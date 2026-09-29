@@ -36,6 +36,8 @@ export interface ReviewAnalysis {
   source: AnalysisSource | null;
   modelName: string | null;
   promptVersion: string | null;
+  /** ISO 639-1 code detected by the model; null for heuristic analyses. */
+  language: string | null;
   createdAt: string;
   updatedAt: string;
 }

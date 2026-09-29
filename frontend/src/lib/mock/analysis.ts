@@ -96,6 +96,7 @@ export function analyzeReview(guestName: string, reviewText: string, rating: num
     source: "FALLBACK",
     modelName: "heuristic",
     promptVersion: null,
+    language: null,
     createdAt: now,
     updatedAt: now,
   };

@@ -13,7 +13,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Skeleton } from "@/components/ui/skeleton";
 import { isNotFound } from "@/lib/data";
 import { useCanWrite, useRetryAnalysis, useReview } from "@/lib/data/hooks";
-import { formatDateTime, humanize } from "@/lib/format";
+import { formatDateTime, humanize, languageName } from "@/lib/format";
 import type { Review } from "@/lib/types";
 import { ReplyPanel } from "./reply-panel";
 
@@ -149,6 +149,11 @@ function AnalysisCard({ review }: { review: Review }) {
                 </Field>
               )}
               <Field label="Main topic">{humanize(analysis.mainTopic)}</Field>
+              {analysis.language && (
+                <Field label="Language">
+                  <span title="The manager reply is written in the guest's language.">{languageName(analysis.language)}</span>
+                </Field>
+              )}
               <Field label="Topics">
                 <span className="flex flex-wrap justify-end gap-1">
                   {analysis.topics.map((t) => (

@@ -11,6 +11,9 @@ type SeedEntry = {
   sentimentScore: number;
   topics: Topic[];
   failed?: string;
+  /** Non-English reviews: detected language and the localized reply the model would write. */
+  language?: string;
+  reply?: string;
 };
 
 const SEED: SeedEntry[] = [
@@ -53,6 +56,16 @@ const SEED: SeedEntry[] = [
   { guestName: "Lucy Evans", rating: 5, daysAgo: 74, hour: 15, reviewText: "Kids loved the pool and the staff were so patient with them. Great family hotel.", sentiment: "POSITIVE", sentimentScore: 93, topics: ["AMENITIES", "STAFF"] },
   { guestName: "Pierre Laurent", rating: 3, daysAgo: 80, hour: 18, reviewText: "Average experience. Clean room but the decor feels tired.", sentiment: "NEUTRAL", sentimentScore: 52, topics: ["CLEANLINESS", "COMFORT"] },
   { guestName: "Fatima Zahra", rating: 4, daysAgo: 85, hour: 11, reviewText: "Welcoming reception team and quick check-in even late at night.", sentiment: "POSITIVE", sentimentScore: 81, topics: ["CHECK_IN", "STAFF"] },
+  {
+    guestName: "Camille Moreau", rating: 2, daysAgo: 2, hour: 9, sentiment: "NEGATIVE", sentimentScore: 22, topics: ["NOISE", "COMFORT"], language: "fr",
+    reviewText: "Chambre très bruyante à cause de la rue, et la climatisation ne fonctionnait pas. Le personnel était gentil mais n'a rien pu faire.",
+    reply: "Chère Camille, nous sommes sincèrement désolés que le bruit de la rue et la climatisation aient gâché votre séjour. Nous avons transmis vos remarques à notre équipe technique afin d'y remédier rapidement. Nous serions ravis de vous accueillir à nouveau dans une chambre plus calme.",
+  },
+  {
+    guestName: "Javier Ortega", rating: 5, daysAgo: 6, hour: 14, sentiment: "POSITIVE", sentimentScore: 92, topics: ["STAFF", "FOOD"], language: "es",
+    reviewText: "Excelente atención del personal y un desayuno buenísimo. Volveremos sin duda.",
+    reply: "Estimado Javier, muchas gracias por sus amables palabras sobre nuestro equipo y el desayuno. Nos alegra mucho que haya disfrutado de su estancia y compartiremos sus comentarios con todo el personal. ¡Esperamos darle la bienvenida de nuevo muy pronto!",
+  },
   { guestName: "Viktor Petrov", rating: 2, daysAgo: 1, hour: 6, reviewText: "Room smelled of smoke even though it was a non-smoking floor.", sentiment: "NEGATIVE", sentimentScore: 20, topics: ["CLEANLINESS"], failed: "Ollama request timed out after 60000 ms." },
   { guestName: "Ingrid Olsen", rating: 4, daysAgo: 2, hour: 20, reviewText: "Good stay overall, the concierge booked us a great restaurant nearby.", sentiment: "POSITIVE", sentimentScore: 77, topics: ["STAFF", "FOOD"], failed: "Failed to parse model output as JSON: Unexpected token at position 0." },
 ];
@@ -89,10 +102,11 @@ export function buildSeedReviews(now: Date = new Date()): Review[] {
         sentimentScore: entry.sentimentScore,
         topics: entry.topics,
         mainTopic: entry.topics[0],
-        managerResponse: composeManagerResponse(entry.guestName, entry.sentiment, entry.topics[0]),
+        managerResponse: entry.reply ?? composeManagerResponse(entry.guestName, entry.sentiment, entry.topics[0]),
         source: "AI",
         modelName: "llama3.2:latest",
-        promptVersion: "review-analysis-v2",
+        promptVersion: "review-analysis-v3",
+        language: entry.language ?? "en",
         createdAt: analyzedAt,
         updatedAt: analyzedAt,
       },
