@@ -25,3 +25,9 @@ test("protected pages redirect to login", async ({ page }) => {
   await page.goto("/reviews");
   await expect(page).toHaveURL(/\/login\?next=%2Freviews/);
 });
+
+test("unknown routes show the 404 page", async ({ page }) => {
+  const response = await page.goto("/does-not-exist");
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
+});
