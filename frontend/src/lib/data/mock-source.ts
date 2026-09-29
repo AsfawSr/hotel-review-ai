@@ -28,11 +28,38 @@ export const DEMO_CREDENTIALS = { username: "demo", password: "demo123" } as con
 interface State {
   reviews: Review[];
   policies: Policy[];
+  /** When the timeline was last aligned to "now" (epoch ms). */
+  anchoredAt: number;
 }
 
 const delay = <T>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), LATENCY_MS));
 const hasStorage = () => typeof window !== "undefined" && !!window.localStorage;
-const seedState = (): State => ({ reviews: buildSeedReviews(), policies: buildSeedPolicies() });
+const seedState = (): State => ({ reviews: buildSeedReviews(), policies: buildSeedPolicies(), anchoredAt: Date.now() });
+const REANCHOR_AFTER_MS = 24 * 60 * 60 * 1000;
+
+const shiftIso = (iso: string, ms: number) => new Date(Date.parse(iso) + ms).toISOString();
+const shiftNullable = (iso: string | null, ms: number) => (iso ? shiftIso(iso, ms) : iso);
+
+// Moves every timestamp forward by the time since the last visit so the demo never looks stale.
+export function reanchor(state: State, now: number): State {
+  const delta = now - state.anchoredAt;
+  if (delta < REANCHOR_AFTER_MS) return state;
+  return {
+    ...state,
+    anchoredAt: now,
+    reviews: state.reviews.map((r) => ({
+      ...r,
+      submittedAt: shiftIso(r.submittedAt, delta),
+      updatedAt: shiftIso(r.updatedAt, delta),
+      analysisUpdatedAt: shiftNullable(r.analysisUpdatedAt, delta),
+      analysis: r.analysis && {
+        ...r.analysis,
+        createdAt: shiftIso(r.analysis.createdAt, delta),
+        updatedAt: shiftIso(r.analysis.updatedAt, delta),
+      },
+    })),
+  };
+}
 
 function readState(): State {
   if (hasStorage()) {
@@ -40,8 +67,13 @@ function readState(): State {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const stored = JSON.parse(raw) as Partial<State>;
-        // Older demo data predates policies.
-        return { reviews: stored.reviews ?? buildSeedReviews(), policies: stored.policies ?? buildSeedPolicies() };
+        // Older demo data predates policies and anchoring.
+        const state: State = {
+          reviews: stored.reviews ?? buildSeedReviews(),
+          policies: stored.policies ?? buildSeedPolicies(),
+          anchoredAt: stored.anchoredAt ?? Date.now(),
+        };
+        return reanchor(state, Date.now());
       }
     } catch {
       // Corrupt storage falls through to a fresh seed.

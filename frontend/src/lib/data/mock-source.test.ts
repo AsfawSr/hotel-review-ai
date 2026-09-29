@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "./errors";
-import { DEMO_CREDENTIALS, mockDataSource } from "./mock-source";
+import { DEMO_CREDENTIALS, mockDataSource, reanchor } from "./mock-source";
 
 class MemoryStorage {
   private data = new Map<string, string>();
@@ -91,6 +91,21 @@ describe("mockDataSource", () => {
     await mockDataSource.deletePolicy(created.id);
     expect(await mockDataSource.listPolicies()).toHaveLength(8);
     await expect(mockDataSource.deletePolicy(created.id)).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("shifts a stale timeline forward on return visits", async () => {
+    const newest = (await mockDataSource.listReviews({ page: 0, size: 10 })).content[0].submittedAt;
+
+    vi.useFakeTimers({ toFake: ["Date"], now: Date.now() + 30 * 24 * 60 * 60 * 1000 });
+    const later = (await mockDataSource.listReviews({ page: 0, size: 10 })).content[0].submittedAt;
+
+    const shiftedDays = (Date.parse(later) - Date.parse(newest)) / (24 * 60 * 60 * 1000);
+    expect(Math.round(shiftedDays)).toBe(30);
+  });
+
+  it("does not re-anchor within a day", () => {
+    const state = { reviews: [], policies: [], anchoredAt: 1_000 };
+    expect(reanchor(state, 1_000 + 60_000)).toBe(state);
   });
 
   it("only accepts the demo credentials", async () => {
