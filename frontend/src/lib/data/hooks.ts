@@ -134,6 +134,14 @@ export function useSubmitReview() {
   });
 }
 
+export function useImportReviews() {
+  const invalidate = useInvalidateReviews();
+  return useMutation({
+    mutationFn: (file: File) => dataSource.importReviews(file),
+    onSuccess: invalidate,
+  });
+}
+
 export function useRetryAnalysis() {
   const client = useQueryClient();
   const invalidate = useInvalidateReviews();

@@ -3,6 +3,7 @@ import type {
   AppUser,
   CurrentUser,
   DashboardMetrics,
+  ImportResult,
   Page,
   Policy,
   PolicyInput,
@@ -27,6 +28,7 @@ export interface DataSource {
   listReviews(query: ReviewQuery): Promise<Page<ReviewListItem>>;
   getReview(id: number): Promise<ReviewDetail>;
   submitReview(submission: ReviewSubmission): Promise<Review>;
+  importReviews(file: File): Promise<ImportResult>;
   retryAnalysis(id: number): Promise<Review>;
   getReply(reviewId: number): Promise<Reply>;
   editReply(reviewId: number, text: string): Promise<Reply>;

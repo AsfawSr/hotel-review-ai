@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/data";
 import { useSubmitReview } from "@/lib/data/hooks";
 import { GUEST_NAME_MAX, REVIEW_TEXT_MAX, validateSubmission } from "@/lib/validation";
+import { ImportReviewsCard } from "./import-reviews-card";
 
 const ratingOptions = [5, 4, 3, 2, 1].map((n) => ({ value: String(n), label: `${"★".repeat(n)} (${n})` }));
 
@@ -49,7 +50,7 @@ export function SubmitReviewForm() {
   };
 
   return (
-    <>
+    <> one by one or import a CSV. Everything is
       <PageHeader title="Submit review" description="Add guest feedback. It will be analyzed asynchronously by the AI pipeline." />
       <Card className="max-w-2xl">
         <CardHeader>
@@ -103,6 +104,9 @@ export function SubmitReviewForm() {
           </form>
         </CardContent>
       </Card>
+      <div className="mt-6">
+        <ImportReviewsCard />
+      </div>
     </>
   );
 }

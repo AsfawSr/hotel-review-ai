@@ -28,6 +28,21 @@ test("demo flow: landing -> login -> submit review -> analysis completes", async
   await expect(page.getByText("Sent", { exact: true })).toBeVisible();
 });
 
+test("CSV import reports imported and skipped rows", async ({ page }) => {
+  await page.goto("/login?next=%2Freviews%2Fsubmit");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/reviews\/submit/);
+
+  await page.getByLabel("CSV file").setInputFiles({
+    name: "reviews.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from('guest,review,stars\nAda,"Great stay, thanks",5\n,No name,3\n'),
+  });
+  await page.getByRole("button", { name: "Import" }).click();
+  await expect(page.getByText("1 imported, 1 skipped")).toBeVisible();
+  await expect(page.getByRole("cell", { name: "guestName: must not be blank" })).toBeVisible();
+});
+
 test("protected pages redirect to login", async ({ page }) => {
   await page.goto("/reviews");
   await expect(page).toHaveURL(/\/login\?next=%2Freviews/);

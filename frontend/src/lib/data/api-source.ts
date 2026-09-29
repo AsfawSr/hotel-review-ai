@@ -3,6 +3,7 @@ import type {
   AppUser,
   CurrentUser,
   DashboardMetrics,
+  ImportResult,
   Page,
   Policy,
   ReindexResult,
@@ -28,7 +29,7 @@ function readCookie(name: string): string | undefined {
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
-  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   // Spring Security's CookieCsrfTokenRepository convention.
   const csrf = readCookie("XSRF-TOKEN");
   if (csrf && init.method && init.method !== "GET") headers.set("X-XSRF-TOKEN", csrf);
@@ -66,6 +67,11 @@ export const apiDataSource: DataSource = {
   listReviews: (query) => request<Page<ReviewListItem>>(`/reviews?${toSearchParams(query)}`),
   getReview: (id) => request<ReviewDetail>(`/reviews/${id}`),
   submitReview: (submission) => request<Review>("/reviews", { method: "POST", body: JSON.stringify(submission) }),
+  importReviews: (file) => {
+    const body = new FormData();
+    body.append("file", file);
+    return request<ImportResult>("/reviews/import", { method: "POST", body });
+  },
   retryAnalysis: (id) => request<Review>(`/reviews/${id}/retry`, { method: "POST" }),
   getReply: (reviewId) => request<Reply>(`/reviews/${reviewId}/reply`),
   editReply: (reviewId, text) => request<Reply>(`/reviews/${reviewId}/reply`, { method: "PUT", body: JSON.stringify({ text }) }),

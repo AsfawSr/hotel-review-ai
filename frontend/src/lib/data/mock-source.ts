@@ -1,6 +1,7 @@
 import { analyzeReview } from "@/lib/mock/analysis";
 import { buildPolicyContext, buildSeedPolicies } from "@/lib/mock/policies";
 import { buildSeedReviews } from "@/lib/mock/seed";
+import { CsvImportError, IMPORT_MAX_BYTES, parseReviewCsv } from "@/lib/review-import";
 import type {
   AppUser,
   DashboardMetrics,
@@ -13,6 +14,7 @@ import type {
   Review,
   ReviewListItem,
   ReviewQuery,
+  ReviewSubmission,
   Sentiment,
   Topic,
   WeeklyTrend,
@@ -148,6 +150,24 @@ function findReview(state: State, id: number): Review {
   const review = state.reviews.find((r) => r.id === id);
   if (!review) throw new ApiError("Review not found", 404);
   return review;
+}
+
+function addReview(state: State, submission: ReviewSubmission): Review {
+  const now = new Date().toISOString();
+  const created: Review = {
+    id: state.reviews.reduce((max, r) => Math.max(max, r.id), 0) + 1,
+    guestName: submission.guestName.trim(),
+    reviewText: submission.reviewText.trim(),
+    rating: submission.rating,
+    analysisStatus: "PENDING",
+    analysisError: null,
+    analysisUpdatedAt: now,
+    submittedAt: now,
+    updatedAt: now,
+    analysis: null,
+  };
+  state.reviews.push(created);
+  return created;
 }
 
 function assertValidPolicy(input: PolicyInput) {
@@ -339,24 +359,22 @@ export const mockDataSource: DataSource = {
     const fieldErrors = validateSubmission(submission);
     if (Object.keys(fieldErrors).length) throw new ApiError("Validation failed", 400, fieldErrors);
 
-    const review = withState((s) => {
-      const now = new Date().toISOString();
-      const created: Review = {
-        id: s.reviews.reduce((max, r) => Math.max(max, r.id), 0) + 1,
-        guestName: submission.guestName.trim(),
-        reviewText: submission.reviewText.trim(),
-        rating: submission.rating,
-        analysisStatus: "PENDING",
-        analysisError: null,
-        analysisUpdatedAt: now,
-        submittedAt: now,
-        updatedAt: now,
-        analysis: null,
-      };
-      s.reviews.push(created);
-      return created;
-    });
+    const review = withState((s) => addReview(s, submission));
     return delay(review);
+  },
+
+  importReviews: async (file) => {
+    if (file.size > IMPORT_MAX_BYTES) throw new ApiError("The file is larger than 2 MB", 413);
+    const text = await file.text();
+    let parsed;
+    try {
+      parsed = parseReviewCsv(text);
+    } catch (error) {
+      if (error instanceof CsvImportError) throw new ApiError(error.message, 400);
+      throw error;
+    }
+    withState((s) => parsed.rows.forEach((row) => addReview(s, row.submission)));
+    return delay({ imported: parsed.rows.length, skipped: parsed.errors.length, errors: parsed.errors });
   },
 
   retryAnalysis: async (id) => {

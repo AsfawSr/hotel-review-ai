@@ -101,6 +101,18 @@ export interface ReviewSubmission {
   rating: number | null;
 }
 
+export interface ImportRowError {
+  /** Physical line in the CSV file where the row starts (header is line 1). */
+  line: number;
+  message: string;
+}
+
+export interface ImportResult {
+  imported: number;
+  skipped: number;
+  errors: ImportRowError[];
+}
+
 export interface DashboardMetrics {
   totalReviews: number;
   averageRating: number;
