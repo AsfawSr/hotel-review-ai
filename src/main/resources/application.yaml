@@ -88,6 +88,10 @@ app:
     admin:
       username: ${APP_ADMIN_USERNAME:admin}
       password: ${APP_ADMIN_PASSWORD}
+  rate-limit:
+    enabled: true
+    login-per-minute: 10
+    submissions-per-minute: 30
   rag:
     enabled: false
     top-k: 5

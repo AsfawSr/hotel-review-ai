@@ -23,6 +23,9 @@ spring:
       type: none
 
 app:
+  # All MockMvc requests share one IP; RateLimitFilterTest covers limiting directly.
+  rate-limit:
+    enabled: false
   security:
     admin:
       username: admin
