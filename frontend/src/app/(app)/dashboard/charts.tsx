@@ -39,7 +39,12 @@ export function SentimentChart({ counts }: { counts: DashboardMetrics["sentiment
           <EmptyChart />
         ) : (
           <>
-            <ChartContainer config={sentimentConfig} className="mx-auto aspect-square h-[220px]">
+            <ChartContainer
+              config={sentimentConfig}
+              className="mx-auto aspect-square h-[220px]"
+              role="img"
+              aria-label={`Sentiment: ${data.map((d) => `${sentimentConfig[d.sentiment].label} ${d.count}`).join(", ")}`}
+            >
               <PieChart>
                 <ChartTooltip content={<ChartTooltipContent nameKey="sentiment" hideLabel />} />
                 <Pie data={data} dataKey="count" nameKey="sentiment" innerRadius={55} strokeWidth={4} />
@@ -73,7 +78,12 @@ export function TopicChart({ counts }: { counts: DashboardMetrics["topicCounts"]
         {data.length === 0 ? (
           <EmptyChart />
         ) : (
-          <ChartContainer config={countConfig} className="h-[260px] w-full aspect-auto">
+          <ChartContainer
+            config={countConfig}
+            className="h-[260px] w-full aspect-auto"
+            role="img"
+            aria-label={`Main topics: ${data.map((d) => `${d.topic} ${d.count}`).join(", ")}`}
+          >
             <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16 }}>
               <CartesianGrid horizontal={false} />
               <XAxis type="number" allowDecimals={false} hide />
@@ -98,7 +108,12 @@ export function RatingChart({ counts }: { counts: DashboardMetrics["ratingCounts
         <CardDescription>Star ratings submitted by guests</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={ratingConfig} className="h-[260px] w-full aspect-auto">
+        <ChartContainer
+          config={ratingConfig}
+          className="h-[260px] w-full aspect-auto"
+          role="img"
+          aria-label={`Ratings: ${data.map((d) => `${d.rating} ${d.count}`).join(", ")}`}
+        >
           <BarChart data={data}>
             <CartesianGrid vertical={false} />
             <XAxis dataKey="rating" tickLine={false} axisLine={false} />

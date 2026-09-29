@@ -13,6 +13,7 @@ export interface Option {
 export function SimpleSelect({
   id,
   label,
+  ariaLabel,
   value,
   options,
   onChange,
@@ -21,6 +22,8 @@ export function SimpleSelect({
 }: {
   id: string;
   label?: string;
+  /** Accessible name when no visible label is rendered. */
+  ariaLabel?: string;
   value: string;
   options: Option[];
   onChange: (value: string) => void;
@@ -34,7 +37,7 @@ export function SimpleSelect({
     <div className="space-y-1.5">
       {label && <Label htmlFor={id}>{label}</Label>}
       <Select items={items} value={value} onValueChange={(v) => onChange(v ?? ALL)}>
-        <SelectTrigger id={id} className={className}>
+        <SelectTrigger id={id} className={className} aria-label={label ? undefined : ariaLabel}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

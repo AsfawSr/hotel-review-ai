@@ -234,7 +234,7 @@ export default function LandingPage() {
         <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
           <div className="flex flex-col items-center gap-4 rounded-2xl bg-primary px-6 py-12 text-center text-primary-foreground">
             <h2 className="text-2xl font-semibold">See it in action</h2>
-            <p className="max-w-lg text-primary-foreground/80">
+            <p className="max-w-lg text-primary-foreground">
               Submit a review and watch it move from Pending to Completed with sentiment, topics and a drafted reply.
             </p>
             <Link href="/login" className={buttonVariants({ variant: "secondary", size: "lg" })}>

@@ -218,6 +218,7 @@ export function ReviewsView() {
               <div className="flex items-center gap-3">
                 <SimpleSelect
                   id="size"
+                  ariaLabel="Reviews per page"
                   className="w-24"
                   value={String(query.size)}
                   onChange={(v) => navigate({ size: v === String(PAGE_SIZES[0]) ? undefined : v, page: undefined })}
