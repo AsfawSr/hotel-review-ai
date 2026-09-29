@@ -1,0 +1,58 @@
+[
+  {
+    "title": "Housekeeping Standards",
+    "category": "Housekeeping",
+    "content": "Rooms are cleaned daily between 09:00 and 15:00. Any cleanliness complaint must be addressed within 30 minutes, and guests may be offered a room change or a complimentary amenity.",
+    "tags": ["cleanliness", "comfort"],
+    "source": "Operations Manual 4.2"
+  },
+  {
+    "title": "Guest Service Recovery",
+    "category": "Front Office",
+    "content": "Staff are empowered to resolve issues up to a value of 100 EUR without manager approval. Negative experiences with staff should receive a personal follow-up from the duty manager within 24 hours.",
+    "tags": ["staff", "service-recovery"],
+    "source": "Service Standards 2.1"
+  },
+  {
+    "title": "Check-in and Check-out",
+    "category": "Front Office",
+    "content": "Standard check-in is from 15:00 and check-out until 11:00. Early check-in and late check-out are subject to availability and are free for loyalty members.",
+    "tags": ["check-in", "check-out"],
+    "source": "Front Office SOP 1.3"
+  },
+  {
+    "title": "Food and Beverage Quality",
+    "category": "Restaurant",
+    "content": "Breakfast is served from 06:30 to 10:30. Dietary requirements (vegan, gluten-free, halal) must be accommodated on request. Complaints about food quality are escalated to the head chef.",
+    "tags": ["food", "breakfast"],
+    "source": "F&B Standards 3.0"
+  },
+  {
+    "title": "Quiet Hours",
+    "category": "Operations",
+    "content": "Quiet hours are from 22:00 to 07:00. Security responds to noise complaints within 15 minutes. Guests affected by noise may be moved to a quieter room at no cost.",
+    "tags": ["noise", "safety"],
+    "source": "Security SOP 5.1"
+  },
+  {
+    "title": "Facilities and Amenities",
+    "category": "Facilities",
+    "content": "The pool and gym are open 07:00-22:00. Wi-Fi is complimentary in all areas. Maintenance issues with amenities must be logged and resolved within one business day.",
+    "tags": ["amenities", "wifi"],
+    "source": "Facilities Handbook"
+  },
+  {
+    "title": "Accessibility Commitment",
+    "category": "Facilities",
+    "content": "Accessible rooms include roll-in showers and grab bars. Elevators are inspected monthly. Guests with accessibility needs are offered assistance on arrival.",
+    "tags": ["accessibility"],
+    "source": "Accessibility Statement"
+  },
+  {
+    "title": "Pricing and Value Guarantee",
+    "category": "Revenue",
+    "content": "We match lower published rates for identical stays. Billing disputes are reviewed by the finance team within 48 hours.",
+    "tags": ["value", "billing"],
+    "source": "Revenue Policy 2025"
+  }
+]

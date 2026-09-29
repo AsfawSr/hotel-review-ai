@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -40,6 +41,8 @@ public class SecurityConfig {
                 .securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(API_LOGIN_PATH).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/policies/**").authenticated()
+                        .requestMatchers("/api/v1/policies/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf

@@ -60,22 +60,23 @@ spring:
           model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
 
     vectorstore:
+      # Off by default so the app starts without the pgvector extension; the "rag" profile switches it on.
+      type: none
       pgvector:
         index-type: hnsw
         distance-type: cosine_distance
         dimensions: ${PGVECTOR_DIMENSIONS:768}
+        # Schema is managed by Flyway (db/vector).
         initialize-schema: false
         remove-existing-vector-store-table: false
-
-  autoconfigure:
-    exclude:
-      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
 
 app:
   rag:
     enabled: false
     top-k: 5
     similarity-threshold: 0.7
+    seed-sample-policies: true
+    reindex-on-startup: false
   analysis:
     recovery-interval: PT1M
     pending-grace: PT2M
@@ -99,3 +100,21 @@ management:
     web:
       exposure:
         include: health,info
+
+---
+# RAG over hotel policies: requires the pgvector extension and the embedding model.
+# Activate with SPRING_PROFILES_ACTIVE=rag (combine with others, e.g. "dev,rag").
+spring:
+  config:
+    activate:
+      on-profile: rag
+  flyway:
+    locations: classpath:db/migration,classpath:db/vector
+  ai:
+    vectorstore:
+      type: pgvector
+
+app:
+  rag:
+    enabled: true
+    reindex-on-startup: true
