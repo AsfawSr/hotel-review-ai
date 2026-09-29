@@ -1,7 +1,7 @@
 import type { DataSourceMode } from "@/lib/data/data-source";
 
 export const SESSION_COOKIE = "JSESSIONID";
-export const PROTECTED_PREFIXES = ["/dashboard", "/reviews", "/policies", "/ai"] as const;
+export const PROTECTED_PREFIXES = ["/dashboard", "/reviews", "/policies", "/users", "/ai"] as const;
 
 const isProtected = (pathname: string) =>
   PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

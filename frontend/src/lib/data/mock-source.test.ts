@@ -104,8 +104,25 @@ describe("mockDataSource", () => {
   });
 
   it("does not re-anchor within a day", () => {
-    const state = { reviews: [], policies: [], anchoredAt: 1_000 };
+    const state = { reviews: [], policies: [], users: [], anchoredAt: 1_000 };
     expect(reanchor(state, 1_000 + 60_000)).toBe(state);
+  });
+
+  it("manages users and protects the last admin", async () => {
+    expect((await mockDataSource.listUsers()).map((u) => u.username)).toEqual(["auditor", "demo", "frontdesk"]);
+
+    await expect(mockDataSource.createUser({ username: "x", password: "short", role: "VIEWER" })).rejects.toMatchObject({
+      status: 400,
+      fieldErrors: { username: expect.any(String), password: expect.any(String) },
+    });
+    await expect(mockDataSource.createUser({ username: "Demo", password: "long-enough-pass", role: "VIEWER" })).rejects.toMatchObject({ status: 409 });
+
+    const created = await mockDataSource.createUser({ username: "night.audit", password: "long-enough-pass", role: "VIEWER" });
+    expect(created).toMatchObject({ username: "night.audit", role: "VIEWER", enabled: true });
+    expect(JSON.stringify(window.localStorage.getItem("hotel-review-ai:demo:v1"))).not.toContain("long-enough-pass");
+
+    const demo = (await mockDataSource.listUsers()).find((u) => u.username === "demo")!;
+    await expect(mockDataSource.updateUser(demo.id, { role: "VIEWER", enabled: true })).rejects.toMatchObject({ status: 409 });
   });
 
   it("only accepts the demo credentials", async () => {

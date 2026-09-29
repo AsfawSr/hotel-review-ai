@@ -12,7 +12,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isNotFound } from "@/lib/data";
-import { useRetryAnalysis, useReview } from "@/lib/data/hooks";
+import { useCanWrite, useRetryAnalysis, useReview } from "@/lib/data/hooks";
 import { formatDateTime, humanize } from "@/lib/format";
 import type { Review } from "@/lib/types";
 
@@ -39,6 +39,7 @@ function ScoreBar({ score }: { score: number }) {
 
 function GuestReviewCard({ review }: { review: Review }) {
   const retry = useRetryAnalysis();
+  const canWrite = useCanWrite();
 
   return (
     <Card>
@@ -65,15 +66,17 @@ function GuestReviewCard({ review }: { review: Review }) {
             <AlertTitle>Analysis failed</AlertTitle>
             <AlertDescription className="space-y-3">
               <p>{review.analysisError ?? "Unexpected analysis error."}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={retry.isPending}
-                onClick={() => retry.mutate(review.id, { onSuccess: () => toast.success("Analysis retry queued.") })}
-              >
-                <RotateCwIcon />
-                Retry analysis
-              </Button>
+              {canWrite && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={retry.isPending}
+                  onClick={() => retry.mutate(review.id, { onSuccess: () => toast.success("Analysis retry queued.") })}
+                >
+                  <RotateCwIcon />
+                  Retry analysis
+                </Button>
+              )}
             </AlertDescription>
           </Alert>
         )}
@@ -85,6 +88,7 @@ function GuestReviewCard({ review }: { review: Review }) {
 function AnalysisCard({ review }: { review: Review }) {
   const analysis = review.analysis;
   const retry = useRetryAnalysis();
+  const canWrite = useCanWrite();
   const copy = async () => {
     if (!analysis) return;
     await navigator.clipboard.writeText(analysis.managerResponse);
@@ -133,15 +137,17 @@ function AnalysisCard({ review }: { review: Review }) {
                       >
                         Heuristic fallback
                       </Badge>
-                      <Button
-                        variant="outline"
-                        size="xs"
-                        disabled={retry.isPending}
-                        onClick={() => retry.mutate(review.id, { onSuccess: () => toast.success("AI analysis re-queued.") })}
-                      >
-                        <RotateCwIcon />
-                        Re-run AI
-                      </Button>
+                      {canWrite && (
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          disabled={retry.isPending}
+                          onClick={() => retry.mutate(review.id, { onSuccess: () => toast.success("AI analysis re-queued.") })}
+                        >
+                          <RotateCwIcon />
+                          Re-run AI
+                        </Button>
+                      )}
                     </span>
                   )}
                 </Field>

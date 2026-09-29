@@ -2,6 +2,7 @@ import { analyzeReview } from "@/lib/mock/analysis";
 import { buildPolicyContext, buildSeedPolicies } from "@/lib/mock/policies";
 import { buildSeedReviews } from "@/lib/mock/seed";
 import type {
+  AppUser,
   DashboardMetrics,
   Page,
   Policy,
@@ -13,7 +14,7 @@ import type {
   Topic,
 } from "@/lib/types";
 import { SENTIMENTS } from "@/lib/types";
-import { validatePolicy, validateSubmission } from "@/lib/validation";
+import { validatePolicy, validateSubmission, validateUser } from "@/lib/validation";
 import type { DataSource } from "./data-source";
 import { ApiError } from "./errors";
 
@@ -28,13 +29,27 @@ export const DEMO_CREDENTIALS = { username: "demo", password: "demo123" } as con
 interface State {
   reviews: Review[];
   policies: Policy[];
+  users: AppUser[];
   /** When the timeline was last aligned to "now" (epoch ms). */
   anchoredAt: number;
 }
 
 const delay = <T>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), LATENCY_MS));
 const hasStorage = () => typeof window !== "undefined" && !!window.localStorage;
-const seedState = (): State => ({ reviews: buildSeedReviews(), policies: buildSeedPolicies(), anchoredAt: Date.now() });
+const seedUsers = (): AppUser[] => {
+  const now = new Date().toISOString();
+  return [
+    { id: 1, username: DEMO_CREDENTIALS.username, role: "ADMIN", enabled: true, createdAt: now },
+    { id: 2, username: "frontdesk", role: "MANAGER", enabled: true, createdAt: now },
+    { id: 3, username: "auditor", role: "VIEWER", enabled: true, createdAt: now },
+  ];
+};
+const seedState = (): State => ({
+  reviews: buildSeedReviews(),
+  policies: buildSeedPolicies(),
+  users: seedUsers(),
+  anchoredAt: Date.now(),
+});
 const REANCHOR_AFTER_MS = 24 * 60 * 60 * 1000;
 
 const shiftIso = (iso: string, ms: number) => new Date(Date.parse(iso) + ms).toISOString();
@@ -71,6 +86,7 @@ function readState(): State {
         const state: State = {
           reviews: stored.reviews ?? buildSeedReviews(),
           policies: stored.policies ?? buildSeedPolicies(),
+          users: stored.users ?? seedUsers(),
           anchoredAt: stored.anchoredAt ?? Date.now(),
         };
         return reanchor(state, Date.now());
@@ -319,6 +335,40 @@ export const mockDataSource: DataSource = {
   },
 
   reindexPolicies: () => delay(withState((s) => ({ ragEnabled: true, indexed: s.policies.filter((p) => p.active).length }))),
+
+  listUsers: () => delay(withState((s) => [...s.users].sort((a, b) => a.username.localeCompare(b.username)))),
+
+  createUser: async (input) => {
+    const fieldErrors = validateUser(input, true);
+    if (Object.keys(fieldErrors).length) throw new ApiError("Validation failed", 400, fieldErrors);
+    const created = withState((s) => {
+      const username = input.username.trim();
+      if (s.users.some((u) => u.username.toLowerCase() === username.toLowerCase())) {
+        throw new ApiError("Username already exists", 409);
+      }
+      // Demo mode never stores passwords; only the demo account can sign in.
+      const user: AppUser = { id: s.users.reduce((max, u) => Math.max(max, u.id), 0) + 1, username, role: input.role, enabled: true, createdAt: new Date().toISOString() };
+      s.users.push(user);
+      return user;
+    });
+    return delay(created);
+  },
+
+  updateUser: async (id, input) => {
+    const fieldErrors = validateUser({ password: input.password }, false);
+    if (Object.keys(fieldErrors).length) throw new ApiError("Validation failed", 400, fieldErrors);
+    const updated = withState((s) => {
+      const index = s.users.findIndex((u) => u.id === id);
+      if (index < 0) throw new ApiError("User not found", 404);
+      const current = s.users[index];
+      const activeAdmins = s.users.filter((u) => u.role === "ADMIN" && u.enabled).length;
+      const losesAdmin = current.role === "ADMIN" && current.enabled && (input.role !== "ADMIN" || !input.enabled);
+      if (losesAdmin && activeAdmins <= 1) throw new ApiError("Cannot demote or disable the last active admin", 409);
+      s.users[index] = { ...current, role: input.role, enabled: input.enabled };
+      return s.users[index];
+    });
+    return delay(updated);
+  },
 
   getCurrentUser: async () => {
     const username = hasStorage() ? window.localStorage.getItem(SESSION_KEY) : null;

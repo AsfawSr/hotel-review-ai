@@ -8,7 +8,7 @@ import { QueryError } from "@/components/query-error";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDashboard, useReviews } from "@/lib/data/hooks";
+import { useCanWrite, useDashboard, useReviews } from "@/lib/data/hooks";
 import { formatDateTime, humanize } from "@/lib/format";
 import { RatingChart, SentimentChart, TopicChart } from "./charts";
 
@@ -68,6 +68,7 @@ function RecentReviews() {
 
 export function DashboardView() {
   const { data, isPending, error, refetch } = useDashboard();
+  const canWrite = useCanWrite();
 
   return (
     <>
@@ -75,10 +76,12 @@ export function DashboardView() {
         title="Dashboard"
         description="Overview of guest sentiment, topics and ratings."
         actions={
-          <Link href="/reviews/submit" className={buttonVariants()}>
-            <PlusIcon />
-            Submit review
-          </Link>
+          canWrite && (
+            <Link href="/reviews/submit" className={buttonVariants()}>
+              <PlusIcon />
+              Submit review
+            </Link>
+          )
         }
       />
 

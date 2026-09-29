@@ -6,16 +6,19 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useCurrentUser, useLogout } from "@/lib/data/hooks";
+import { useCanWrite, useCurrentUser, useIsAdmin, useLogout } from "@/lib/data/hooks";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/reviews", label: "Reviews" },
-  { href: "/reviews/submit", label: "Submit Review" },
-  { href: "/policies", label: "Policies" },
-  { href: "/ai/status", label: "AI Status" },
-] as const;
+type Access = "all" | "write" | "admin";
+
+const NAV_ITEMS: { href: string; label: string; access: Access }[] = [
+  { href: "/dashboard", label: "Dashboard", access: "all" },
+  { href: "/reviews", label: "Reviews", access: "all" },
+  { href: "/reviews/submit", label: "Submit Review", access: "write" },
+  { href: "/policies", label: "Policies", access: "all" },
+  { href: "/users", label: "Users", access: "admin" },
+  { href: "/ai/status", label: "AI Status", access: "all" },
+];
 
 function isActive(pathname: string, href: string) {
   if (href === "/reviews") return pathname === "/reviews" || /^\/reviews\/\d+/.test(pathname);
@@ -27,12 +30,18 @@ export function Navbar() {
   const router = useRouter();
   const { data: user } = useCurrentUser();
   const logout = useLogout();
+  const canWrite = useCanWrite();
+  const isAdmin = useIsAdmin();
   const [open, setOpen] = useState(false);
 
   const handleLogout = () =>
     logout.mutate(undefined, { onSuccess: () => router.replace("/login?logout") });
 
-  const links = NAV_ITEMS.map((item) => (
+  const visible = NAV_ITEMS.filter(
+    (item) => item.access === "all" || (item.access === "write" && canWrite) || (item.access === "admin" && isAdmin),
+  );
+
+  const links = visible.map((item) => (
     <Link
       key={item.href}
       href={item.href}

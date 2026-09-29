@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useReviews } from "@/lib/data/hooks";
+import { useCanWrite, useReviews } from "@/lib/data/hooks";
 import { formatDateTime, humanize } from "@/lib/format";
 import { ANALYSIS_STATUSES, PAGE_SIZES, type ReviewQuery, SENTIMENTS, TOPICS } from "@/lib/types";
 
@@ -108,6 +108,7 @@ export function ReviewsView() {
   const params = useSearchParams();
   const query = parseQuery(params);
   const { data, isPending, isFetching, error, refetch } = useReviews(query);
+  const canWrite = useCanWrite();
   const hasFilters = FILTER_KEYS.some((k) => query[k] != null);
 
   const navigate = (next: Partial<Record<FilterKey | "page" | "size", string | number | undefined>>) => {
@@ -127,10 +128,12 @@ export function ReviewsView() {
         title="Reviews"
         description="Browse, filter and inspect analyzed guest reviews."
         actions={
-          <Link href="/reviews/submit" className={buttonVariants()}>
-            <PlusIcon />
-            Submit review
-          </Link>
+          canWrite && (
+            <Link href="/reviews/submit" className={buttonVariants()}>
+              <PlusIcon />
+              Submit review
+            </Link>
+          )
         }
       />
 

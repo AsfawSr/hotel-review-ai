@@ -40,4 +40,8 @@ test("app pages are accessible", async ({ page }) => {
 
   await page.goto("/reviews/submit");
   await expectNoSeriousViolations(page);
+
+  await page.goto("/users");
+  await expect(page.getByText("frontdesk")).toBeVisible();
+  await expectNoSeriousViolations(page);
 });

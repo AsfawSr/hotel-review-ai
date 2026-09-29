@@ -42,3 +42,20 @@ export function validatePolicy(input: PolicyInput): Record<string, string> {
   }
   return errors;
 }
+
+// Same constraints as UserCreateRequest / UserUpdateRequest on the backend.
+const USERNAME_RE = /^[A-Za-z0-9._@-]{3,100}$/;
+const PASSWORD_MIN = 10;
+const PASSWORD_MAX = 72;
+
+export function validateUser(input: { username?: string; password?: string }, requirePassword: boolean): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (input.username !== undefined && !USERNAME_RE.test(input.username.trim())) {
+    errors.username = "3-100 characters: letters, digits and . _ @ -";
+  }
+  const password = input.password ?? "";
+  if ((requirePassword || password) && (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX)) {
+    errors.password = `Must be ${PASSWORD_MIN}-${PASSWORD_MAX} characters.`;
+  }
+  return errors;
+}

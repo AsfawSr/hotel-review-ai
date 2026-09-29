@@ -126,6 +126,30 @@ export interface CurrentUser {
   roles: string[];
 }
 
+export const USER_ROLES = ["ADMIN", "MANAGER", "VIEWER"] as const;
+export type UserRole = (typeof USER_ROLES)[number];
+
+export interface AppUser {
+  id: number;
+  username: string;
+  role: UserRole;
+  enabled: boolean;
+  createdAt: string;
+}
+
+export interface UserCreateInput {
+  username: string;
+  password: string;
+  role: UserRole;
+}
+
+export interface UserUpdateInput {
+  role: UserRole;
+  enabled: boolean;
+  /** Empty keeps the current password. */
+  password?: string;
+}
+
 export interface Policy {
   id: number;
   title: string;

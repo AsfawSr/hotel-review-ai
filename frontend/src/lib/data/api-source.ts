@@ -1,5 +1,6 @@
 import type {
   AiStatus,
+  AppUser,
   CurrentUser,
   DashboardMetrics,
   Page,
@@ -69,6 +70,9 @@ export const apiDataSource: DataSource = {
   updatePolicy: (id, input) => request<Policy>(`/policies/${id}`, { method: "PUT", body: JSON.stringify(input) }),
   deletePolicy: (id) => request<void>(`/policies/${id}`, { method: "DELETE" }),
   reindexPolicies: () => request<ReindexResult>("/policies/reindex", { method: "POST" }),
+  listUsers: () => request<AppUser[]>("/users"),
+  createUser: (input) => request<AppUser>("/users", { method: "POST", body: JSON.stringify(input) }),
+  updateUser: (id, input) => request<AppUser>(`/users/${id}`, { method: "PUT", body: JSON.stringify(input) }),
   getCurrentUser: async () => {
     try {
       return await request<CurrentUser>("/auth/me");

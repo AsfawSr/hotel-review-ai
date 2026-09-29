@@ -1,5 +1,6 @@
 import type {
   AiStatus,
+  AppUser,
   CurrentUser,
   DashboardMetrics,
   Page,
@@ -11,6 +12,8 @@ import type {
   ReviewListItem,
   ReviewQuery,
   ReviewSubmission,
+  UserCreateInput,
+  UserUpdateInput,
 } from "@/lib/types";
 
 export type DataSourceMode = "mock" | "api";
@@ -28,6 +31,9 @@ export interface DataSource {
   updatePolicy(id: number, input: PolicyInput): Promise<Policy>;
   deletePolicy(id: number): Promise<void>;
   reindexPolicies(): Promise<ReindexResult>;
+  listUsers(): Promise<AppUser[]>;
+  createUser(input: UserCreateInput): Promise<AppUser>;
+  updateUser(id: number, input: UserUpdateInput): Promise<AppUser>;
   getCurrentUser(): Promise<CurrentUser | null>;
   login(username: string, password: string): Promise<CurrentUser>;
   logout(): Promise<void>;

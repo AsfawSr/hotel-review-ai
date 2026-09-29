@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PolicyInput, ReviewQuery, ReviewSubmission } from "@/lib/types";
+import type { PolicyInput, ReviewQuery, ReviewSubmission, UserCreateInput, UserUpdateInput } from "@/lib/types";
 import { dataSource } from "./index";
 
 export const queryKeys = {
@@ -10,6 +10,7 @@ export const queryKeys = {
   review: (id: number) => ["review", id] as const,
   aiStatus: ["ai-status"] as const,
   policies: ["policies"] as const,
+  users: ["users"] as const,
   currentUser: ["current-user"] as const,
 };
 
@@ -47,6 +48,31 @@ export const useCurrentUser = () =>
   useQuery({ queryKey: queryKeys.currentUser, queryFn: () => dataSource.getCurrentUser(), staleTime: Infinity });
 
 export const useIsAdmin = () => useCurrentUser().data?.roles.includes("ADMIN") ?? false;
+
+/** MANAGER and ADMIN may submit and retry reviews; VIEWER is read-only. */
+export const useCanWrite = () => {
+  const roles = useCurrentUser().data?.roles ?? [];
+  return roles.includes("ADMIN") || roles.includes("MANAGER");
+};
+
+export const useUsers = (enabled: boolean) =>
+  useQuery({ queryKey: queryKeys.users, queryFn: () => dataSource.listUsers(), enabled });
+
+export function useCreateUser() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UserCreateInput) => dataSource.createUser(input),
+    onSuccess: () => client.invalidateQueries({ queryKey: queryKeys.users }),
+  });
+}
+
+export function useUpdateUser() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: number; input: UserUpdateInput }) => dataSource.updateUser(id, input),
+    onSuccess: () => client.invalidateQueries({ queryKey: queryKeys.users }),
+  });
+}
 
 export const usePolicies = () => useQuery({ queryKey: queryKeys.policies, queryFn: () => dataSource.listPolicies() });
 
