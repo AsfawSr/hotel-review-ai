@@ -10,7 +10,12 @@ public record ReviewAnalysisResult(
         Integer sentimentScore,
         Set<Topic> topics,
         Topic mainTopic,
-        String managerResponse
+        String managerResponse,
+        String language
 ) {
+    public ReviewAnalysisResult(Sentiment sentiment, Integer sentimentScore, Set<Topic> topics, Topic mainTopic,
+                                String managerResponse) {
+        this(sentiment, sentimentScore, topics, mainTopic, managerResponse, null);
+    }
 }
 

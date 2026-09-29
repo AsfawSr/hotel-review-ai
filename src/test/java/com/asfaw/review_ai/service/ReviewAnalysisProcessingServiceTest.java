@@ -61,13 +61,14 @@ class ReviewAnalysisProcessingServiceTest {
         when(aiService.analyzeReview(review))
                 .thenThrow(new RuntimeException("timeout"))
                 .thenReturn(new AiAnalysis(
-                        new ReviewAnalysisResult(Sentiment.POSITIVE, 90, Set.of(Topic.STAFF), Topic.STAFF, "Thanks!"),
+                        new ReviewAnalysisResult(Sentiment.POSITIVE, 90, Set.of(Topic.STAFF), Topic.STAFF, "Thanks!", "de"),
                         "Title: Staff policy", "llama3.2", "v-test"));
 
         service.processReviewAsync(1L);
 
         verify(aiService, times(2)).analyzeReview(review);
         assertThat(completedAnalysis().getManagerResponse()).isEqualTo("Thanks!");
+        assertThat(completedAnalysis().getLanguage()).isEqualTo("de");
         assertThat(completedAnalysis().getSource()).isEqualTo(AnalysisSource.AI);
         assertThat(completedAnalysis().getPolicyContext()).isEqualTo("Title: Staff policy");
         assertThat(completedAnalysis().getModelName()).isEqualTo("llama3.2");

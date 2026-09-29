@@ -98,6 +98,7 @@ public class ReviewAnalysisProcessingService {
         analysis.setPolicyContext(aiAnalysis.policyContext());
         analysis.setModelName(aiAnalysis.model());
         analysis.setPromptVersion(aiAnalysis.promptVersion());
+        analysis.setLanguage(result.language());
         analysis.setSentiment(result.sentiment() == null ? Sentiment.NEUTRAL : result.sentiment());
         analysis.setSentimentScore(result.sentimentScore() == null ? 50 : result.sentimentScore());
         analysis.setManagerResponse(defaultManagerResponse(result.managerResponse()));

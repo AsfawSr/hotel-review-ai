@@ -66,7 +66,7 @@ class AnalysisResultNormalizerTest {
         String json = """
                 ```json
                 {"sentiment":"mixed","sentimentScore":55,"topics":["food","BREAKFAST","noise"],
-                 "mainTopic":"Food","managerResponse":"Thanks","confidence":0.9}
+                 "mainTopic":"Food","managerResponse":"Thanks","language":"FR-ca","confidence":0.9}
                 ```
                 """;
 
@@ -75,5 +75,15 @@ class AnalysisResultNormalizerTest {
         assertThat(result.sentiment()).isEqualTo(Sentiment.NEUTRAL);
         assertThat(result.topics()).containsExactly(Topic.FOOD, Topic.NOISE);
         assertThat(result.mainTopic()).isEqualTo(Topic.FOOD);
+        assertThat(result.language()).isEqualTo("fr");
+    }
+
+    @Test
+    void dropsLanguageValuesThatAreNotIsoCodes() {
+        assertThat(AnalysisResultNormalizer.normalizeLanguage(" es ")).isEqualTo("es");
+        assertThat(AnalysisResultNormalizer.normalizeLanguage("pt_BR")).isEqualTo("pt");
+        assertThat(AnalysisResultNormalizer.normalizeLanguage("French")).isNull();
+        assertThat(AnalysisResultNormalizer.normalizeLanguage("")).isNull();
+        assertThat(AnalysisResultNormalizer.normalizeLanguage(null)).isNull();
     }
 }

@@ -5,6 +5,7 @@ import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
 
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -49,7 +50,16 @@ public final class AnalysisResultNormalizer {
             response = response.substring(0, MAX_RESPONSE_LENGTH);
         }
 
-        return new ReviewAnalysisResult(sentiment, score, limited, mainTopic, response);
+        return new ReviewAnalysisResult(sentiment, score, limited, mainTopic, response, normalizeLanguage(raw.language()));
+    }
+
+    /** Lowercase ISO 639-1 code ("en", "pt-br" becomes "pt"), or null when the model returned something else. */
+    static String normalizeLanguage(String language) {
+        if (language == null) {
+            return null;
+        }
+        String code = language.strip().toLowerCase(Locale.ROOT).split("[-_]", 2)[0];
+        return code.matches("[a-z]{2}") ? code : null;
     }
 
     public static Sentiment sentimentFor(int score) {

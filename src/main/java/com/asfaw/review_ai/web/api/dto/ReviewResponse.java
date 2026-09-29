@@ -32,12 +32,13 @@ public record ReviewResponse(
             AnalysisSource source,
             String modelName,
             String promptVersion,
+            String language,
             Instant createdAt,
             Instant updatedAt
     ) {
         static Analysis from(ReviewAnalysis a) {
             return new Analysis(a.getSentiment(), a.getSentimentScore(), List.copyOf(a.getTopics()), a.getMainTopic(),
-                    a.getManagerResponse(), a.getSource(), a.getModelName(), a.getPromptVersion(),
+                    a.getManagerResponse(), a.getSource(), a.getModelName(), a.getPromptVersion(), a.getLanguage(),
                     a.getCreatedAt(), a.getUpdatedAt());
         }
     }

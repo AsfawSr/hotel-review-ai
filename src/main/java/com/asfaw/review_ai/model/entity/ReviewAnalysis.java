@@ -94,6 +94,10 @@ public class ReviewAnalysis {
     @Column(name = "prompt_version", length = 40)
     private String promptVersion;
 
+    /** ISO 639-1 code detected by the model; null for heuristic analyses. */
+    @Column(name = "language", length = 8)
+    private String language;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

@@ -39,6 +39,7 @@ public class ReviewAnalysisWriter {
             target.setPolicyContext(truncate(result.getPolicyContext(), ReviewAnalysis.MAX_POLICY_CONTEXT_LENGTH));
             target.setModelName(result.getModelName());
             target.setPromptVersion(result.getPromptVersion());
+            target.setLanguage(result.getLanguage());
             target.getTopics().clear();
             target.getTopics().addAll(result.getTopics());
 

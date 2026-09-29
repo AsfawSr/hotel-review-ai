@@ -35,7 +35,7 @@ public class ReviewAnalysisAiService {
             .build();
 
     // Bump when the system prompt changes so stored analyses stay traceable.
-    public static final String PROMPT_VERSION = "review-analysis-v2";
+    public static final String PROMPT_VERSION = "review-analysis-v3";
 
     private final ChatClient chatClient;
     private final RagContextService ragContextService;
