@@ -70,10 +70,11 @@ public class ReviewApiController {
             @RequestParam(required = false) Integer ratingMax,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
-            @RequestParam(required = false) String guest) {
+            @RequestParam(required = false) String guest,
+            @RequestParam(required = false) String q) {
         int effectiveSize = ALLOWED_PAGE_SIZES.contains(size) ? size : ALLOWED_PAGE_SIZES.getFirst();
         ReviewService.ReviewFilters filters =
-                reviewService.buildFilters(status, sentiment, topic, ratingMin, ratingMax, dateFrom, dateTo, guest);
+                reviewService.buildFilters(status, sentiment, topic, ratingMin, ratingMax, dateFrom, dateTo, guest, q);
         return PageResponse.from(reviewService.listReviewsPage(page, effectiveSize, filters));
     }
 

@@ -22,6 +22,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -106,8 +107,14 @@ public class ReviewService {
             specification = specification.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("submittedAt"), filters.submittedTo()));
         }
         if (filters.guestKeyword() != null && !filters.guestKeyword().isBlank()) {
-            String likeValue = "%" + filters.guestKeyword().trim().toLowerCase() + "%";
-            specification = specification.and((root, query, cb) -> cb.like(cb.lower(root.get("guestName")), likeValue));
+            String likeValue = likeContains(filters.guestKeyword().trim().toLowerCase(Locale.ROOT));
+            specification = specification.and((root, query, cb) -> cb.like(cb.lower(root.get("guestName")), likeValue, '\\'));
+        }
+        for (String keyword : filters.keywords() == null ? List.<String>of() : filters.keywords()) {
+            String likeValue = likeContains(keyword);
+            specification = specification.and((root, query, cb) -> cb.or(
+                    cb.like(cb.lower(root.get("reviewText")), likeValue, '\\'),
+                    cb.like(cb.lower(root.get("guestName")), likeValue, '\\')));
         }
         if (filters.sentiment() != null) {
             specification = specification.and((root, query, cb) -> cb.equal(root.join("analysis", jakarta.persistence.criteria.JoinType.LEFT).get("sentiment"), filters.sentiment()));
@@ -140,7 +147,35 @@ public class ReviewService {
         Instant submittedFrom = dateFrom == null ? null : dateFrom.atStartOfDay().toInstant(java.time.ZoneOffset.UTC);
         Instant submittedTo = dateTo == null ? null : dateTo.atTime(LocalTime.MAX).toInstant(java.time.ZoneOffset.UTC);
 
-        return new ReviewFilters(status, sentiment, topic, safeMin, safeMax, submittedFrom, submittedTo, guestKeyword);
+        return new ReviewFilters(status, sentiment, topic, safeMin, safeMax, submittedFrom, submittedTo, guestKeyword, List.of());
+    }
+
+    public ReviewFilters buildFilters(AnalysisStatus status, Sentiment sentiment, Topic topic, Integer ratingMin,
+                                      Integer ratingMax, LocalDate dateFrom, LocalDate dateTo, String guestKeyword,
+                                      String query) {
+        ReviewFilters base = buildFilters(status, sentiment, topic, ratingMin, ratingMax, dateFrom, dateTo, guestKeyword);
+        return new ReviewFilters(base.analysisStatus(), base.sentiment(), base.topic(), base.ratingMin(), base.ratingMax(),
+                base.submittedFrom(), base.submittedTo(), base.guestKeyword(), parseKeywords(query));
+    }
+
+    static final int MAX_KEYWORDS = 5;
+    static final int MAX_KEYWORD_LENGTH = 100;
+
+    static List<String> parseKeywords(String query) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        return java.util.Arrays.stream(query.trim().toLowerCase(Locale.ROOT).split("\\s+"))
+                .map(word -> word.length() > MAX_KEYWORD_LENGTH ? word.substring(0, MAX_KEYWORD_LENGTH) : word)
+                .distinct()
+                .limit(MAX_KEYWORDS)
+                .toList();
+    }
+
+    /** Escapes LIKE wildcards so user input is matched literally (used with escape char '\'). */
+    static String likeContains(String value) {
+        String escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return "%" + escaped + "%";
     }
 
     private ReviewListItem toReviewListItem(Review review) {
@@ -302,7 +337,9 @@ public class ReviewService {
             Integer ratingMax,
             Instant submittedFrom,
             Instant submittedTo,
-            String guestKeyword
+            String guestKeyword,
+            /** Words that must all appear in the review text or guest name (case-insensitive). */
+            List<String> keywords
     ) {
     }
 }
