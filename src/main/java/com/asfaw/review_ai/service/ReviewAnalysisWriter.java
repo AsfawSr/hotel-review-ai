@@ -5,6 +5,7 @@ import com.asfaw.review_ai.model.entity.ReviewAnalysis;
 import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.time.Instant;
 public class ReviewAnalysisWriter {
 
     private final ReviewRepository reviewRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Stores the result, updating an existing analysis in place: replacing the one-to-one row would insert
@@ -41,6 +43,9 @@ public class ReviewAnalysisWriter {
             target.getTopics().addAll(result.getTopics());
 
             markStatus(review, AnalysisStatus.COMPLETED, null);
+            eventPublisher.publishEvent(new ReviewAnalyzedEvent(review.getId(), review.getGuestName(), review.getRating(),
+                    review.getReviewText(), target.getSentiment(), target.getSentimentScore(), target.getMainTopic(),
+                    target.getSource()));
         });
     }
 

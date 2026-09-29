@@ -92,6 +92,10 @@ app:
     enabled: true
     login-per-minute: 10
     submissions-per-minute: 30
+  alerts:
+    # Slack-compatible incoming webhook for negative reviews; empty disables alerts.
+    webhook-url: ${ALERT_WEBHOOK_URL:}
+    public-base-url: ${APP_PUBLIC_URL:}
   rag:
     enabled: false
     top-k: 5
