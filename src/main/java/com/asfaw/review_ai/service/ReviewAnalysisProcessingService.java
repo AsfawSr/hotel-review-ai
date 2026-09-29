@@ -18,6 +18,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -33,6 +34,7 @@ public class ReviewAnalysisProcessingService {
     private final ObjectProvider<ReviewAnalysisAiService> reviewAnalysisAiServiceProvider;
     private final AnalysisProperties analysisProperties;
     private final ReviewAnalysisWriter analysisWriter;
+    private final AnalysisMetrics metrics;
 
     @Async("analysisTaskExecutor")
     public void processReviewAsync(Long reviewId) {
@@ -44,11 +46,15 @@ public class ReviewAnalysisProcessingService {
             return;
         }
 
+        long started = System.nanoTime();
         try {
-            analysisWriter.complete(reviewId, generateAnalysis(review));
+            ReviewAnalysis analysis = generateAnalysis(review);
+            analysisWriter.complete(reviewId, analysis);
+            metrics.completed(analysis.getSource(), Duration.ofNanos(System.nanoTime() - started));
         } catch (RuntimeException ex) {
             log.warn("Async analysis failed for review {}", reviewId, ex);
             analysisWriter.fail(reviewId, truncateError(ex.getMessage()));
+            metrics.failed(Duration.ofNanos(System.nanoTime() - started));
         }
     }
 
@@ -61,8 +67,11 @@ public class ReviewAnalysisProcessingService {
         int maxAttempts = Math.max(1, analysisProperties.aiMaxAttempts());
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                return mapAnalysis(aiService.analyzeReview(review));
+                ReviewAnalysis analysis = mapAnalysis(aiService.analyzeReview(review));
+                metrics.aiAttempt(true);
+                return analysis;
             } catch (RuntimeException ex) {
+                metrics.aiAttempt(false);
                 log.warn("AI analysis attempt {}/{} failed for review {}", attempt, maxAttempts, review.getId(), ex);
                 if (attempt < maxAttempts && !sleep(analysisProperties.aiRetryBackoff().toMillis())) {
                     break;

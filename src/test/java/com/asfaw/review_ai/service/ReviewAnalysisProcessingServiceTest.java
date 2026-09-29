@@ -11,6 +11,7 @@ import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
 import com.asfaw.review_ai.repository.ReviewRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -40,10 +41,11 @@ class ReviewAnalysisProcessingServiceTest {
 
     private ReviewAnalysisProcessingService service;
     private Review review;
+    private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
 
     @BeforeEach
     void setUp() {
-        service = new ReviewAnalysisProcessingService(repository, provider, properties, writer);
+        service = new ReviewAnalysisProcessingService(repository, provider, properties, writer, new AnalysisMetrics(registry));
         review = new Review();
         review.setId(1L);
         review.setGuestName("Guest");
@@ -70,6 +72,9 @@ class ReviewAnalysisProcessingServiceTest {
         assertThat(completedAnalysis().getPolicyContext()).isEqualTo("Title: Staff policy");
         assertThat(completedAnalysis().getModelName()).isEqualTo("llama3.2");
         assertThat(completedAnalysis().getPromptVersion()).isEqualTo("v-test");
+        assertThat(registry.get("analysis.ai.attempts").tag("result", "failure").counter().count()).isEqualTo(1);
+        assertThat(registry.get("analysis.ai.attempts").tag("result", "success").counter().count()).isEqualTo(1);
+        assertThat(registry.get("analysis.duration").tag("source", "AI").timer().count()).isEqualTo(1);
     }
 
     @Test
@@ -81,6 +86,7 @@ class ReviewAnalysisProcessingServiceTest {
         verify(aiService, times(2)).analyzeReview(review);
         assertThat(completedAnalysis().getTopics()).contains(Topic.STAFF);
         assertThat(completedAnalysis().getSource()).isEqualTo(AnalysisSource.FALLBACK);
+        assertThat(registry.get("analysis.duration").tag("source", "FALLBACK").timer().count()).isEqualTo(1);
     }
 
     private ReviewAnalysis completedAnalysis() {

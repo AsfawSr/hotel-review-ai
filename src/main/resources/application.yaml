@@ -116,7 +116,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        # health/info are public; metrics/prometheus require login (scrape from a trusted network).
+        include: health,info,metrics,prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        analysis.duration: true
 
 ---
 # RAG over hotel policies: requires the pgvector extension and the embedding model.
