@@ -86,6 +86,7 @@ app:
 
 server:
   port: ${SERVER_PORT:8080}
+  shutdown: graceful
 
 logging:
   level:

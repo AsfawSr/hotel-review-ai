@@ -1,0 +1,15 @@
+.git
+.gitignore
+.vscode
+.idea
+.mvn
+mvnw
+mvnw.cmd
+target
+frontend
+docs
+*.md
+.env
+.env.*
+Dockerfile
+compose.yaml
