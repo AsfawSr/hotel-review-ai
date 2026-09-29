@@ -107,6 +107,8 @@ server:
   shutdown: graceful
 
 logging:
+  pattern:
+    correlation: "[%X{requestId:-}] "
   level:
     root: INFO
     org.springframework.ai: INFO
