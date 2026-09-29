@@ -5,6 +5,7 @@ import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
 import com.asfaw.review_ai.service.AiStatusService;
 import com.asfaw.review_ai.service.ReviewService;
+import com.asfaw.review_ai.service.TrendService;
 import com.asfaw.review_ai.web.api.dto.DashboardResponse;
 import com.asfaw.review_ai.web.api.dto.PageResponse;
 import com.asfaw.review_ai.web.api.dto.ReviewDetailResponse;
@@ -36,10 +37,16 @@ public class ReviewApiController {
 
     private final ReviewService reviewService;
     private final AiStatusService aiStatusService;
+    private final TrendService trendService;
 
     @GetMapping("/dashboard")
     public DashboardResponse dashboard() {
-        return DashboardResponse.from(reviewService.buildDashboardMetrics());
+        return DashboardResponse.from(reviewService.buildDashboardMetrics(), trendService.unansweredNegativeCount());
+    }
+
+    @GetMapping("/dashboard/trends")
+    public List<TrendService.WeeklyTrend> trends(@RequestParam(defaultValue = "12") int weeks) {
+        return trendService.weekly(weeks);
     }
 
     @GetMapping("/reviews")

@@ -2,6 +2,8 @@ package com.asfaw.review_ai.repository;
 
 import com.asfaw.review_ai.model.entity.Review;
 import com.asfaw.review_ai.model.enums.AnalysisStatus;
+import com.asfaw.review_ai.model.enums.ReplyStatus;
+import com.asfaw.review_ai.model.enums.Sentiment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -67,4 +69,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecif
     List<Long> findIdsByStatusUpdatedBefore(@Param("status") AnalysisStatus status,
                                             @Param("cutoff") Instant cutoff,
                                             Pageable pageable);
+
+    /** Rows of [submittedAt, rating, sentiment (nullable)] for trend aggregation. */
+    @Query("select r.submittedAt, r.rating, a.sentiment from Review r left join r.analysis a where r.submittedAt >= :since")
+    List<Object[]> findTrendRowsSince(@Param("since") Instant since);
+
+    @Query("""
+            select count(r) from Review r join r.analysis a
+             where a.sentiment = :sentiment
+               and not exists (select 1 from ReplyRevision rr where rr.reviewId = r.id and rr.status = :replyStatus)
+            """)
+    long countNegativeWithoutReplyStatus(@Param("sentiment") Sentiment sentiment, @Param("replyStatus") ReplyStatus replyStatus);
 }
