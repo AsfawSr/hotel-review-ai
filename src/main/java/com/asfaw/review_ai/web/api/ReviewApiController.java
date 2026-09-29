@@ -4,6 +4,7 @@ import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
 import com.asfaw.review_ai.service.AiStatusService;
+import com.asfaw.review_ai.service.ReviewExportService;
 import com.asfaw.review_ai.service.ReviewImportService;
 import com.asfaw.review_ai.service.ReviewService;
 import com.asfaw.review_ai.service.TrendService;
@@ -13,9 +14,12 @@ import com.asfaw.review_ai.web.api.dto.ReviewDetailResponse;
 import com.asfaw.review_ai.web.api.dto.ReviewResponse;
 import com.asfaw.review_ai.web.dto.ReviewListItem;
 import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +37,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
@@ -48,6 +53,7 @@ public class ReviewApiController {
     private final AiStatusService aiStatusService;
     private final TrendService trendService;
     private final ReviewImportService reviewImportService;
+    private final ReviewExportService reviewExportService;
 
     @GetMapping("/dashboard")
     public DashboardResponse dashboard() {
@@ -76,6 +82,29 @@ public class ReviewApiController {
         ReviewService.ReviewFilters filters =
                 reviewService.buildFilters(status, sentiment, topic, ratingMin, ratingMax, dateFrom, dateTo, guest, q);
         return PageResponse.from(reviewService.listReviewsPage(page, effectiveSize, filters));
+    }
+
+    /** Same filters as GET /reviews; streams up to 5000 rows as UTF-8 CSV (with BOM so Excel detects the encoding). */
+    @GetMapping(path = "/reviews/export", produces = "text/csv")
+    public void exportReviews(
+            @RequestParam(required = false) AnalysisStatus status,
+            @RequestParam(required = false) Sentiment sentiment,
+            @RequestParam(required = false) Topic topic,
+            @RequestParam(required = false) Integer ratingMin,
+            @RequestParam(required = false) Integer ratingMax,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String guest,
+            @RequestParam(required = false) String q,
+            HttpServletResponse response) throws IOException {
+        ReviewService.ReviewFilters filters =
+                reviewService.buildFilters(status, sentiment, topic, ratingMin, ratingMax, dateFrom, dateTo, guest, q);
+        response.setContentType("text/csv;charset=UTF-8");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                .filename("reviews-" + LocalDate.now() + ".csv").build().toString());
+        Writer writer = response.getWriter();
+        writer.write('\uFEFF');
+        reviewExportService.export(filters, writer);
     }
 
     @GetMapping("/reviews/{id}")

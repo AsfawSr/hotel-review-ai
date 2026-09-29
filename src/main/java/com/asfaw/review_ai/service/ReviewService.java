@@ -89,6 +89,12 @@ public class ReviewService {
         int safePage = Math.max(0, page);
         int safeSize = Math.min(Math.max(1, size), 100);
 
+        return reviewRepository.findAll(buildSpecification(filters), org.springframework.data.domain.PageRequest.of(safePage, safeSize,
+                        org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "submittedAt")))
+                .map(this::toReviewListItem);
+    }
+
+    public Specification<Review> buildSpecification(ReviewFilters filters) {
         Specification<Review> specification = Specification.where(null);
 
         if (filters.analysisStatus() != null) {
@@ -122,10 +128,7 @@ public class ReviewService {
         if (filters.topic() != null) {
             specification = specification.and((root, query, cb) -> cb.equal(root.join("analysis", jakarta.persistence.criteria.JoinType.LEFT).get("mainTopic"), filters.topic()));
         }
-
-        return reviewRepository.findAll(specification, org.springframework.data.domain.PageRequest.of(safePage, safeSize,
-                        org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "submittedAt")))
-                .map(this::toReviewListItem);
+        return specification;
     }
 
     public ReviewFilters buildFilters(AnalysisStatus status,
