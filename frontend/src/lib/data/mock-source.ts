@@ -232,6 +232,8 @@ function filterReviews(reviews: Review[], q: ReviewQuery): Review[] {
   const from = q.dateFrom ? Date.parse(`${q.dateFrom}T00:00:00.000Z`) : undefined;
   const to = q.dateTo ? Date.parse(`${q.dateTo}T23:59:59.999Z`) : undefined;
   const guest = q.guest?.trim().toLowerCase();
+  // Same rules as ReviewService#parseKeywords: up to 5 distinct words, all must match.
+  const keywords = [...new Set(q.q?.trim().toLowerCase().split(/\s+/).filter(Boolean) ?? [])].slice(0, 5);
 
   return reviews.filter((r) => {
     const submitted = Date.parse(r.submittedAt);
@@ -243,6 +245,10 @@ function filterReviews(reviews: Review[], q: ReviewQuery): Review[] {
     if (from != null && submitted < from) return false;
     if (to != null && submitted > to) return false;
     if (guest && !r.guestName.toLowerCase().includes(guest)) return false;
+    if (keywords.length) {
+      const haystack = `${r.reviewText}\n${r.guestName}`.toLowerCase();
+      if (!keywords.every((k) => haystack.includes(k))) return false;
+    }
     return true;
   });
 }

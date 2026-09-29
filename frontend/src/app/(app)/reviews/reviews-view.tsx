@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeftIcon, ChevronRightIcon, EyeIcon, FilterIcon, PlusIcon, XIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, EyeIcon, FilterIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -19,7 +19,7 @@ import { formatDateTime, humanize } from "@/lib/format";
 import { ANALYSIS_STATUSES, PAGE_SIZES, type ReviewQuery, SENTIMENTS, TOPICS } from "@/lib/types";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const FILTER_KEYS = ["status", "sentiment", "topic", "ratingMin", "ratingMax", "dateFrom", "dateTo", "guest"] as const;
+const FILTER_KEYS = ["q", "status", "sentiment", "topic", "ratingMin", "ratingMax", "dateFrom", "dateTo", "guest"] as const;
 type FilterKey = (typeof FILTER_KEYS)[number];
 type Draft = Record<FilterKey, string>;
 
@@ -52,6 +52,7 @@ function parseQuery(params: URLSearchParams): ReviewQuery {
     dateFrom: date("dateFrom"),
     dateTo: date("dateTo"),
     guest: params.get("guest")?.trim() || undefined,
+    q: params.get("q")?.trim() || undefined,
   };
 }
 
@@ -73,6 +74,20 @@ function FiltersForm({ query, onApply }: { query: ReviewQuery; onApply: (draft: 
       }}
       className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8"
     >
+      <div className="space-y-1.5 sm:col-span-2 lg:col-span-4 xl:col-span-8">
+        <Label htmlFor="q">Search reviews</Label>
+        <div className="relative">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            id="q"
+            type="search"
+            className="pl-8"
+            placeholder="Keywords in the review text, e.g. breakfast cold"
+            value={draft.q}
+            onChange={(e) => set("q")(e.target.value)}
+          />
+        </div>
+      </div>
       <div className="space-y-1.5 sm:col-span-2 lg:col-span-4 xl:col-span-2">
         <Label htmlFor="guest">Guest</Label>
         <Input id="guest" placeholder="Search by name" value={draft.guest} onChange={(e) => set("guest")(e.target.value)} />

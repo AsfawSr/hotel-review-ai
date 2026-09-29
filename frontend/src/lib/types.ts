@@ -84,6 +84,8 @@ export interface ReviewFilters {
   /** yyyy-MM-dd */
   dateTo?: string;
   guest?: string;
+  /** Keywords that must all appear in the review text or guest name. */
+  q?: string;
 }
 
 export interface ReviewQuery extends ReviewFilters {

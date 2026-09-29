@@ -31,6 +31,15 @@ describe("mockDataSource", () => {
     expect([...dates].sort().reverse()).toEqual(dates);
   });
 
+  it("keyword search requires every word in the review text or guest name", async () => {
+    const page = await mockDataSource.listReviews({ page: 0, size: 50, q: "  BREAKFAST  cold " });
+    expect(page.totalElements).toBe(1);
+    expect(page.content[0].guestName).toBe("Jack Thompson");
+
+    const none = await mockDataSource.listReviews({ page: 0, size: 50, q: "breakfast zebra" });
+    expect(none.totalElements).toBe(0);
+  });
+
   it("builds dashboard metrics consistent with the reviews", async () => {
     const metrics = await mockDataSource.getDashboard();
     const analyzed = Object.values(metrics.sentimentCounts).reduce((a, b) => a + b, 0);
