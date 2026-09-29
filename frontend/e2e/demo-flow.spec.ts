@@ -43,6 +43,22 @@ test("CSV import reports imported and skipped rows", async ({ page }) => {
   await expect(page.getByRole("cell", { name: "guestName: must not be blank" })).toBeVisible();
 });
 
+test("reviews can be searched and exported as CSV", async ({ page }) => {
+  await page.goto("/login?next=%2Freviews");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/reviews$/);
+
+  await page.getByLabel("Search reviews").fill("breakfast cold");
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page).toHaveURL(/q=breakfast\+cold/);
+  await expect(page.getByRole("cell", { name: "Jack Thompson" })).toBeVisible();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export CSV" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^reviews-\d{4}-\d{2}-\d{2}\.csv$/);
+});
+
 test("protected pages redirect to login", async ({ page }) => {
   await page.goto("/reviews");
   await expect(page).toHaveURL(/\/login\?next=%2Freviews/);

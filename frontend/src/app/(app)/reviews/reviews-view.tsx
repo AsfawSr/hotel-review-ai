@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronLeftIcon, ChevronRightIcon, EyeIcon, FilterIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, EyeIcon, FilterIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { RatingStars, SentimentBadge, StatusBadge } from "@/components/badges";
 import { PageHeader } from "@/components/page-header";
 import { QueryError } from "@/components/query-error";
@@ -14,8 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useCanWrite, useReviews } from "@/lib/data/hooks";
+import { useCanWrite, useExportReviews, useReviews } from "@/lib/data/hooks";
 import { formatDateTime, humanize } from "@/lib/format";
+import { downloadBlob, exportFileName } from "@/lib/review-export";
 import { ANALYSIS_STATUSES, PAGE_SIZES, type ReviewQuery, SENTIMENTS, TOPICS } from "@/lib/types";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -124,6 +126,7 @@ export function ReviewsView() {
   const query = parseQuery(params);
   const { data, isPending, isFetching, error, refetch } = useReviews(query);
   const canWrite = useCanWrite();
+  const exportCsv = useExportReviews();
   const hasFilters = FILTER_KEYS.some((k) => query[k] != null);
 
   const navigate = (next: Partial<Record<FilterKey | "page" | "size", string | number | undefined>>) => {
@@ -143,12 +146,27 @@ export function ReviewsView() {
         title="Reviews"
         description="Browse, filter and inspect analyzed guest reviews."
         actions={
-          canWrite && (
-            <Link href="/reviews/submit" className={buttonVariants()}>
-              <PlusIcon />
-              Submit review
-            </Link>
-          )
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              disabled={exportCsv.isPending}
+              onClick={() =>
+                exportCsv.mutate(query, {
+                  onSuccess: (blob) => downloadBlob(blob, exportFileName()),
+                  onError: (e) => toast.error(e.message),
+                })
+              }
+            >
+              <DownloadIcon />
+              {exportCsv.isPending ? "Exporting…" : "Export CSV"}
+            </Button>
+            {canWrite && (
+              <Link href="/reviews/submit" className={buttonVariants()}>
+                <PlusIcon />
+                Submit review
+              </Link>
+            )}
+          </div>
         }
       />
 

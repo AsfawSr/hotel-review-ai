@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PolicyInput, ReviewQuery, ReviewSubmission, UserCreateInput, UserUpdateInput } from "@/lib/types";
+import type { PolicyInput, ReviewFilters, ReviewQuery, ReviewSubmission, UserCreateInput, UserUpdateInput } from "@/lib/types";
 import { dataSource } from "./index";
 
 export const queryKeys = {
@@ -133,6 +133,8 @@ export function useSubmitReview() {
     onSuccess: invalidate,
   });
 }
+
+export const useExportReviews = () => useMutation({ mutationFn: (filters: ReviewFilters) => dataSource.exportReviews(filters) });
 
 export function useImportReviews() {
   const invalidate = useInvalidateReviews();

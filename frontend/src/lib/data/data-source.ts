@@ -11,6 +11,7 @@ import type {
   Reply,
   Review,
   ReviewDetail,
+  ReviewFilters,
   ReviewListItem,
   ReviewQuery,
   ReviewSubmission,
@@ -26,6 +27,8 @@ export interface DataSource {
   getDashboard(): Promise<DashboardMetrics>;
   getTrends(weeks: number): Promise<WeeklyTrend[]>;
   listReviews(query: ReviewQuery): Promise<Page<ReviewListItem>>;
+  /** CSV of all reviews matching the filters (newest first). */
+  exportReviews(filters: ReviewFilters): Promise<Blob>;
   getReview(id: number): Promise<ReviewDetail>;
   submitReview(submission: ReviewSubmission): Promise<Review>;
   importReviews(file: File): Promise<ImportResult>;

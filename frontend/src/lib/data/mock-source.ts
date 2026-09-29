@@ -2,6 +2,7 @@ import { analyzeReview } from "@/lib/mock/analysis";
 import { buildPolicyContext, buildSeedPolicies } from "@/lib/mock/policies";
 import { buildSeedReviews } from "@/lib/mock/seed";
 import { CsvImportError, IMPORT_MAX_BYTES, parseReviewCsv } from "@/lib/review-import";
+import { reviewsToCsv } from "@/lib/review-export";
 import type {
   AppUser,
   DashboardMetrics,
@@ -12,8 +13,8 @@ import type {
   ReplyRevision,
   ReplyStatus,
   Review,
+  ReviewFilters,
   ReviewListItem,
-  ReviewQuery,
   ReviewSubmission,
   Sentiment,
   Topic,
@@ -225,7 +226,7 @@ const toListItem = (r: Review): ReviewListItem => ({
   submittedAt: r.submittedAt,
 });
 
-function filterReviews(reviews: Review[], q: ReviewQuery): Review[] {
+function filterReviews(reviews: Review[], q: ReviewFilters): Review[] {
   let min = q.ratingMin == null ? undefined : Math.max(1, Math.min(5, q.ratingMin));
   let max = q.ratingMax == null ? undefined : Math.max(1, Math.min(5, q.ratingMax));
   if (min != null && max != null && min > max) [min, max] = [max, min];
@@ -351,6 +352,11 @@ export const mockDataSource: DataSource = {
         };
       }),
     ),
+
+  exportReviews: async (filters) => {
+    const reviews = withState((s) => filterReviews(s.reviews, filters).sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)));
+    return delay(new Blob([reviewsToCsv(reviews.slice(0, 5000))], { type: "text/csv;charset=utf-8" }));
+  },
 
   getReview: async (id) => {
     const { review, policies } = withState((s) => ({ review: findReview(s, id), policies: s.policies }));

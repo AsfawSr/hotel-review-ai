@@ -10,8 +10,8 @@ import type {
   Reply,
   Review,
   ReviewDetail,
+  ReviewFilters,
   ReviewListItem,
-  ReviewQuery,
   WeeklyTrend,
 } from "@/lib/types";
 import type { DataSource } from "./data-source";
@@ -52,7 +52,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return (await response.json()) as T;
 }
 
-function toSearchParams(query: ReviewQuery): string {
+function toSearchParams(query: ReviewFilters): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
     if (value !== undefined && value !== null && value !== "") params.set(key, String(value));
@@ -65,6 +65,14 @@ export const apiDataSource: DataSource = {
   getDashboard: () => request<DashboardMetrics>("/dashboard"),
   getTrends: (weeks) => request<WeeklyTrend[]>(`/dashboard/trends?weeks=${weeks}`),
   listReviews: (query) => request<Page<ReviewListItem>>(`/reviews?${toSearchParams(query)}`),
+  exportReviews: async (filters) => {
+    const response = await fetch(`${API_BASE}/reviews/export?${toSearchParams(filters)}`, {
+      headers: { Accept: "text/csv" },
+      credentials: "include",
+    });
+    if (!response.ok) throw new ApiError(response.statusText || "Export failed", response.status);
+    return response.blob();
+  },
   getReview: (id) => request<ReviewDetail>(`/reviews/${id}`),
   submitReview: (submission) => request<Review>("/reviews", { method: "POST", body: JSON.stringify(submission) }),
   importReviews: (file) => {
