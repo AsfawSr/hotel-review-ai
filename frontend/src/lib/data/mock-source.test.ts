@@ -104,7 +104,7 @@ describe("mockDataSource", () => {
   });
 
   it("does not re-anchor within a day", () => {
-    const state = { reviews: [], policies: [], users: [], anchoredAt: 1_000 };
+    const state = { reviews: [], policies: [], users: [], replies: {}, anchoredAt: 1_000 };
     expect(reanchor(state, 1_000 + 60_000)).toBe(state);
   });
 
@@ -123,6 +123,22 @@ describe("mockDataSource", () => {
 
     const demo = (await mockDataSource.listUsers()).find((u) => u.username === "demo")!;
     await expect(mockDataSource.updateUser(demo.id, { role: "VIEWER", enabled: true })).rejects.toMatchObject({ status: 409 });
+  });
+
+  it("runs the reply workflow with the backend's transition rules", async () => {
+    const reviewId = (await mockDataSource.listReviews({ page: 0, size: 10, status: "COMPLETED" })).content[0].id;
+
+    const draft = await mockDataSource.getReply(reviewId);
+    expect(draft).toMatchObject({ status: "DRAFT", updatedBy: "AI", history: [] });
+
+    await expect(mockDataSource.markReplySent(reviewId)).rejects.toMatchObject({ status: 409 });
+    const edited = await mockDataSource.editReply(reviewId, "  Thanks for staying!  ");
+    expect(edited).toMatchObject({ status: "EDITED", text: "Thanks for staying!" });
+    await mockDataSource.approveReply(reviewId);
+    const sent = await mockDataSource.markReplySent(reviewId);
+    expect(sent.status).toBe("SENT");
+    expect(sent.history.map((r) => r.status)).toEqual(["EDITED", "APPROVED", "SENT"]);
+    await expect(mockDataSource.editReply(reviewId, "late")).rejects.toMatchObject({ status: 409 });
   });
 
   it("only accepts the demo credentials", async () => {

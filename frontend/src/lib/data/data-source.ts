@@ -7,6 +7,7 @@ import type {
   Policy,
   PolicyInput,
   ReindexResult,
+  Reply,
   Review,
   ReviewDetail,
   ReviewListItem,
@@ -25,6 +26,10 @@ export interface DataSource {
   getReview(id: number): Promise<ReviewDetail>;
   submitReview(submission: ReviewSubmission): Promise<Review>;
   retryAnalysis(id: number): Promise<Review>;
+  getReply(reviewId: number): Promise<Reply>;
+  editReply(reviewId: number, text: string): Promise<Reply>;
+  approveReply(reviewId: number): Promise<Reply>;
+  markReplySent(reviewId: number): Promise<Reply>;
   getAiStatus(): Promise<AiStatus>;
   listPolicies(): Promise<Policy[]>;
   createPolicy(input: PolicyInput): Promise<Policy>;

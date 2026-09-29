@@ -7,6 +7,9 @@ import type {
   Page,
   Policy,
   PolicyInput,
+  Reply,
+  ReplyRevision,
+  ReplyStatus,
   Review,
   ReviewListItem,
   ReviewQuery,
@@ -30,6 +33,8 @@ interface State {
   reviews: Review[];
   policies: Policy[];
   users: AppUser[];
+  /** Reply revisions per review id (oldest first). */
+  replies: Record<number, ReplyRevision[]>;
   /** When the timeline was last aligned to "now" (epoch ms). */
   anchoredAt: number;
 }
@@ -48,6 +53,7 @@ const seedState = (): State => ({
   reviews: buildSeedReviews(),
   policies: buildSeedPolicies(),
   users: seedUsers(),
+  replies: {},
   anchoredAt: Date.now(),
 });
 const REANCHOR_AFTER_MS = 24 * 60 * 60 * 1000;
@@ -87,6 +93,7 @@ function readState(): State {
           reviews: stored.reviews ?? buildSeedReviews(),
           policies: stored.policies ?? buildSeedPolicies(),
           users: stored.users ?? seedUsers(),
+          replies: stored.replies ?? {},
           anchoredAt: stored.anchoredAt ?? Date.now(),
         };
         return reanchor(state, Date.now());
@@ -145,6 +152,36 @@ function findReview(state: State, id: number): Review {
 function assertValidPolicy(input: PolicyInput) {
   const fieldErrors = validatePolicy(input);
   if (Object.keys(fieldErrors).length) throw new ApiError("Validation failed", 400, fieldErrors);
+}
+
+function currentReply(state: State, reviewId: number): Reply {
+  const review = findReview(state, reviewId);
+  if (!review.analysis) throw new ApiError("The review has not been analyzed yet", 409);
+  const history = state.replies[reviewId] ?? [];
+  const last = history.at(-1);
+  return last
+    ? { status: last.status, text: last.text, updatedBy: last.author, updatedAt: last.createdAt, history }
+    : { status: "DRAFT", text: review.analysis.managerResponse, updatedBy: "AI", updatedAt: null, history: [] };
+}
+
+// Same rules as ReplyStatus on the backend.
+function canTransition(from: ReplyStatus, to: ReplyStatus): boolean {
+  if (to === "EDITED") return from !== "SENT";
+  if (to === "APPROVED") return from === "DRAFT" || from === "EDITED";
+  if (to === "SENT") return from === "APPROVED";
+  return false;
+}
+
+async function transitionReply(reviewId: number, to: ReplyStatus, text?: string): Promise<Reply> {
+  const reply = withState((s) => {
+    const current = currentReply(s, reviewId);
+    if (!canTransition(current.status, to)) throw new ApiError(`Cannot change a ${current.status} reply to ${to}`, 409);
+    const author = hasStorage() ? (window.localStorage.getItem(SESSION_KEY) ?? "demo") : "demo";
+    const revision: ReplyRevision = { status: to, text: text ?? current.text, author, createdAt: new Date().toISOString() };
+    s.replies[reviewId] = [...(s.replies[reviewId] ?? []), revision];
+    return currentReply(s, reviewId);
+  });
+  return delay(reply);
 }
 
 const normalizePolicy = (input: PolicyInput): PolicyInput => ({
@@ -290,6 +327,18 @@ export const mockDataSource: DataSource = {
     });
     return delay(review);
   },
+
+  getReply: async (reviewId) => delay(withState((s) => currentReply(s, reviewId))),
+
+  editReply: async (reviewId, text) => {
+    const trimmed = text.trim();
+    if (!trimmed || trimmed.length > 4000) throw new ApiError("Validation failed", 400, { text: "Reply must be 1-4000 characters." });
+    return transitionReply(reviewId, "EDITED", trimmed);
+  },
+
+  approveReply: (reviewId) => transitionReply(reviewId, "APPROVED"),
+
+  markReplySent: (reviewId) => transitionReply(reviewId, "SENT"),
 
   getAiStatus: () =>
     delay({

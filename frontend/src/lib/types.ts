@@ -170,3 +170,21 @@ export interface ReindexResult {
   ragEnabled: boolean;
   indexed: number;
 }
+
+export const REPLY_STATUSES = ["DRAFT", "EDITED", "APPROVED", "SENT"] as const;
+export type ReplyStatus = (typeof REPLY_STATUSES)[number];
+
+export interface ReplyRevision {
+  status: ReplyStatus;
+  text: string;
+  author: string;
+  createdAt: string;
+}
+
+export interface Reply {
+  status: ReplyStatus;
+  text: string;
+  updatedBy: string;
+  updatedAt: string | null;
+  history: ReplyRevision[];
+}

@@ -17,8 +17,15 @@ test("demo flow: landing -> login -> submit review -> analysis completes", async
   await page.getByRole("button", { name: "Submit review" }).click();
 
   await expect(page).toHaveURL(/\/reviews\/\d+$/);
-  await expect(page.getByText("Suggested manager response")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Manager reply")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText("Negative").first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Edit" }).click();
+  await page.getByLabel("Reply text").fill("We are sorry about your stay and have addressed the issues.");
+  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: "Approve" }).click();
+  await page.getByRole("button", { name: "Mark as sent" }).click();
+  await expect(page.getByText("Sent", { exact: true })).toBeVisible();
 });
 
 test("protected pages redirect to login", async ({ page }) => {

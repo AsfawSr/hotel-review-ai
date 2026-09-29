@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftIcon, BookOpenIcon, CopyIcon, Loader2Icon, RotateCwIcon, SparklesIcon } from "lucide-react";
+import { ArrowLeftIcon, BookOpenIcon, Loader2Icon, RotateCwIcon, SparklesIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { RatingStars, SentimentBadge, StatusBadge } from "@/components/badges";
@@ -15,6 +15,7 @@ import { isNotFound } from "@/lib/data";
 import { useCanWrite, useRetryAnalysis, useReview } from "@/lib/data/hooks";
 import { formatDateTime, humanize } from "@/lib/format";
 import type { Review } from "@/lib/types";
+import { ReplyPanel } from "./reply-panel";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -89,11 +90,6 @@ function AnalysisCard({ review }: { review: Review }) {
   const analysis = review.analysis;
   const retry = useRetryAnalysis();
   const canWrite = useCanWrite();
-  const copy = async () => {
-    if (!analysis) return;
-    await navigator.clipboard.writeText(analysis.managerResponse);
-    toast.success("Manager response copied.");
-  };
 
   return (
     <Card>
@@ -163,16 +159,7 @@ function AnalysisCard({ review }: { review: Review }) {
                 </span>
               </Field>
             </div>
-            <div className="rounded-lg border bg-primary/5 p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm font-medium">Suggested manager response</p>
-                <Button variant="ghost" size="xs" onClick={copy}>
-                  <CopyIcon />
-                  Copy
-                </Button>
-              </div>
-              <p className="text-sm leading-relaxed">{analysis.managerResponse}</p>
-            </div>
+            <ReplyPanel reviewId={review.id} />
             {analysis.modelName && (
               <p className="text-xs text-muted-foreground">
                 Model: <span className="font-mono">{analysis.modelName}</span>

@@ -8,6 +8,7 @@ export const queryKeys = {
   dashboard: ["dashboard"] as const,
   reviews: (query?: ReviewQuery) => (query ? (["reviews", query] as const) : (["reviews"] as const)),
   review: (id: number) => ["review", id] as const,
+  reply: (reviewId: number) => ["reply", reviewId] as const,
   aiStatus: ["ai-status"] as const,
   policies: ["policies"] as const,
   users: ["users"] as const,
@@ -75,6 +76,24 @@ export function useUpdateUser() {
 }
 
 export const usePolicies = () => useQuery({ queryKey: queryKeys.policies, queryFn: () => dataSource.listPolicies() });
+
+export const useReply = (reviewId: number, enabled: boolean) =>
+  useQuery({ queryKey: queryKeys.reply(reviewId), queryFn: () => dataSource.getReply(reviewId), enabled, retry: false });
+
+type ReplyAction = { type: "edit"; text: string } | { type: "approve" } | { type: "sent" };
+
+export function useReplyAction(reviewId: number) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (action: ReplyAction) =>
+      action.type === "edit"
+        ? dataSource.editReply(reviewId, action.text)
+        : action.type === "approve"
+          ? dataSource.approveReply(reviewId)
+          : dataSource.markReplySent(reviewId),
+    onSuccess: (reply) => client.setQueryData(queryKeys.reply(reviewId), reply),
+  });
+}
 
 export function useSavePolicy() {
   const client = useQueryClient();
