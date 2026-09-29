@@ -15,6 +15,8 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -30,6 +32,12 @@ public class SecurityConfig {
 
     public static final String API_LOGIN_PATH = "/api/v1/auth/login";
 
+    // Delegating encoder: BCrypt today, and stored hashes carry their algorithm id for future upgrades.
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
     /**
      * JSON API used by the Next.js frontend: session cookie auth, CSRF token exposed in the XSRF-TOKEN cookie
      * and echoed back in the X-XSRF-TOKEN header, and problem+json 401/403 instead of login redirects.
@@ -41,8 +49,10 @@ public class SecurityConfig {
                 .securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(API_LOGIN_PATH).permitAll()
+                        .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/policies/**").authenticated()
                         .requestMatchers("/api/v1/policies/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf
@@ -74,6 +84,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/webjars/**", "/error", "/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/reviews/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

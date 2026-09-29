@@ -37,11 +37,7 @@ spring:
       connect-timeout: ${HTTP_CONNECT_TIMEOUT:5s}
       read-timeout: ${HTTP_READ_TIMEOUT:120s}
 
-  security:
-    user:
-      name: ${APP_ADMIN_USERNAME:admin}
-      password: ${APP_ADMIN_PASSWORD}
-      roles: ADMIN
+  # The bootstrap admin (app.security.admin below) is created on first start; further users are managed via /api/v1/users.
 
   ai:
     model:
@@ -88,6 +84,10 @@ spring:
         remove-existing-vector-store-table: false
 
 app:
+  security:
+    admin:
+      username: ${APP_ADMIN_USERNAME:admin}
+      password: ${APP_ADMIN_PASSWORD}
   rag:
     enabled: false
     top-k: 5

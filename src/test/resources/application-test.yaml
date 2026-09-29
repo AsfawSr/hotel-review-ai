@@ -10,12 +10,6 @@ spring:
       # Flyway builds the schema; validate proves migrations and entities agree.
       ddl-auto: validate
 
-  security:
-    user:
-      name: admin
-      password: test-password
-      roles: ADMIN
-
   ai:
     model:
       chat: none
@@ -27,4 +21,10 @@ spring:
       moderation: none
     vectorstore:
       type: none
+
+app:
+  security:
+    admin:
+      username: admin
+      password: test-password
 
