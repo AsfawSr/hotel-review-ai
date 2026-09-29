@@ -1,13 +1,15 @@
-import type { Topic } from "@/lib/types";
+import type { Policy, Topic } from "@/lib/types";
+import { TOPICS } from "@/lib/types";
+import { detectTopics } from "./analysis";
 
-export interface MockPolicy {
+interface MockPolicy {
   title: string;
   category: string;
   content: string;
   topics: Topic[];
 }
 
-export const MOCK_POLICIES: MockPolicy[] = [
+const MOCK_POLICIES: MockPolicy[] = [
   {
     title: "Housekeeping Standards",
     category: "Housekeeping",
@@ -66,8 +68,33 @@ export const MOCK_POLICIES: MockPolicy[] = [
   },
 ];
 
-export function buildPolicyContext(topics: Topic[]): string {
-  const matches = MOCK_POLICIES.filter((p) => p.topics.some((t) => topics.includes(t))).slice(0, 3);
-  const docs = matches.length ? matches : [MOCK_POLICIES[1]];
+export function buildSeedPolicies(now: Date = new Date()): Policy[] {
+  const ts = now.toISOString();
+  return MOCK_POLICIES.map((p, index) => ({
+    id: index + 1,
+    title: p.title,
+    category: p.category,
+    content: p.content,
+    tags: p.topics.map((t) => t.toLowerCase().replace("_", "-")),
+    source: null,
+    effectiveDate: null,
+    active: true,
+    createdAt: ts,
+    updatedAt: ts,
+  }));
+}
+
+function policyTopics(policy: Policy): Topic[] {
+  const fromTags = policy.tags
+    .map((tag) => tag.toUpperCase().replace("-", "_"))
+    .filter((tag): tag is Topic => (TOPICS as readonly string[]).includes(tag));
+  return [...new Set([...fromTags, ...detectTopics(`${policy.title} ${policy.content}`.toLowerCase())])];
+}
+
+/** Simulates vector retrieval: active policies whose topics overlap the review's topics (max 3). */
+export function buildPolicyContext(policies: Policy[], topics: Topic[]): string {
+  const active = policies.filter((p) => p.active);
+  const matches = active.filter((p) => policyTopics(p).some((t) => topics.includes(t))).slice(0, 3);
+  const docs = matches.length ? matches : active.slice(0, 1);
   return docs.map((p) => `Title: ${p.title}\nCategory: ${p.category}\nContent: ${p.content}`).join("\n\n");
 }

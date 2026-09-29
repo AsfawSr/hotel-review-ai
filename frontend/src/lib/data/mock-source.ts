@@ -1,9 +1,11 @@
 import { analyzeReview } from "@/lib/mock/analysis";
-import { buildPolicyContext } from "@/lib/mock/policies";
+import { buildPolicyContext, buildSeedPolicies } from "@/lib/mock/policies";
 import { buildSeedReviews } from "@/lib/mock/seed";
 import type {
   DashboardMetrics,
   Page,
+  Policy,
+  PolicyInput,
   Review,
   ReviewListItem,
   ReviewQuery,
@@ -11,7 +13,7 @@ import type {
   Topic,
 } from "@/lib/types";
 import { SENTIMENTS } from "@/lib/types";
-import { validateSubmission } from "@/lib/validation";
+import { validatePolicy, validateSubmission } from "@/lib/validation";
 import type { DataSource } from "./data-source";
 import { ApiError } from "./errors";
 
@@ -25,21 +27,27 @@ export const DEMO_CREDENTIALS = { username: "demo", password: "demo123" } as con
 
 interface State {
   reviews: Review[];
+  policies: Policy[];
 }
 
 const delay = <T>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), LATENCY_MS));
 const hasStorage = () => typeof window !== "undefined" && !!window.localStorage;
+const seedState = (): State => ({ reviews: buildSeedReviews(), policies: buildSeedPolicies() });
 
 function readState(): State {
   if (hasStorage()) {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw) as State;
+      if (raw) {
+        const stored = JSON.parse(raw) as Partial<State>;
+        // Older demo data predates policies.
+        return { reviews: stored.reviews ?? buildSeedReviews(), policies: stored.policies ?? buildSeedPolicies() };
+      }
     } catch {
       // Corrupt storage falls through to a fresh seed.
     }
   }
-  return { reviews: buildSeedReviews() };
+  return seedState();
 }
 
 function writeState(state: State) {
@@ -85,6 +93,21 @@ function findReview(state: State, id: number): Review {
   if (!review) throw new ApiError("Review not found", 404);
   return review;
 }
+
+function assertValidPolicy(input: PolicyInput) {
+  const fieldErrors = validatePolicy(input);
+  if (Object.keys(fieldErrors).length) throw new ApiError("Validation failed", 400, fieldErrors);
+}
+
+const normalizePolicy = (input: PolicyInput): PolicyInput => ({
+  title: input.title.trim(),
+  category: input.category.trim(),
+  content: input.content.trim(),
+  tags: [...new Set(input.tags.map((t) => t.trim()))],
+  source: input.source?.trim() || null,
+  effectiveDate: input.effectiveDate || null,
+  active: input.active,
+});
 
 const toListItem = (r: Review): ReviewListItem => ({
   id: r.id,
@@ -175,12 +198,12 @@ export const mockDataSource: DataSource = {
     ),
 
   getReview: async (id) => {
-    const review = withState((s) => findReview(s, id));
+    const { review, policies } = withState((s) => ({ review: findReview(s, id), policies: s.policies }));
     // Mirrors the backend: only AI analyses are grounded in retrieved policies.
     if (!review.analysis || review.analysis.source === "FALLBACK") {
       return delay({ review, policyContext: "", ragEnabled: false });
     }
-    return delay({ review, policyContext: buildPolicyContext(review.analysis.topics), ragEnabled: true });
+    return delay({ review, policyContext: buildPolicyContext(policies, review.analysis.topics), ragEnabled: true });
   },
 
   submitReview: async (submission) => {
@@ -230,6 +253,41 @@ export const mockDataSource: DataSource = {
       message: "Demo mode: analysis is simulated in your browser using the backend's fallback heuristics.",
     }),
 
+  listPolicies: () =>
+    delay(withState((s) => [...s.policies].sort((a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title)))),
+
+  createPolicy: async (input) => {
+    assertValidPolicy(input);
+    const created = withState((s) => {
+      const now = new Date().toISOString();
+      const policy: Policy = { ...normalizePolicy(input), id: s.policies.reduce((max, p) => Math.max(max, p.id), 0) + 1, createdAt: now, updatedAt: now };
+      s.policies.push(policy);
+      return policy;
+    });
+    return delay(created);
+  },
+
+  updatePolicy: async (id, input) => {
+    assertValidPolicy(input);
+    const updated = withState((s) => {
+      const index = s.policies.findIndex((p) => p.id === id);
+      if (index < 0) throw new ApiError("Policy not found", 404);
+      s.policies[index] = { ...s.policies[index], ...normalizePolicy(input), updatedAt: new Date().toISOString() };
+      return s.policies[index];
+    });
+    return delay(updated);
+  },
+
+  deletePolicy: async (id) => {
+    withState((s) => {
+      if (!s.policies.some((p) => p.id === id)) throw new ApiError("Policy not found", 404);
+      s.policies = s.policies.filter((p) => p.id !== id);
+    });
+    return delay(undefined);
+  },
+
+  reindexPolicies: () => delay(withState((s) => ({ ragEnabled: true, indexed: s.policies.filter((p) => p.active).length }))),
+
   getCurrentUser: async () => {
     const username = hasStorage() ? window.localStorage.getItem(SESSION_KEY) : null;
     return delay(username ? { username, roles: ["ADMIN"] } : null);
@@ -250,7 +308,7 @@ export const mockDataSource: DataSource = {
   },
 
   resetDemo: async () => {
-    writeState({ reviews: buildSeedReviews() });
+    writeState(seedState());
     return delay(undefined);
   },
 };

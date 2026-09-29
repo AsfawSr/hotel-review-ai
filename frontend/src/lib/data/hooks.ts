@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ReviewQuery, ReviewSubmission } from "@/lib/types";
+import type { PolicyInput, ReviewQuery, ReviewSubmission } from "@/lib/types";
 import { dataSource } from "./index";
 
 export const queryKeys = {
@@ -9,6 +9,7 @@ export const queryKeys = {
   reviews: (query?: ReviewQuery) => (query ? (["reviews", query] as const) : (["reviews"] as const)),
   review: (id: number) => ["review", id] as const,
   aiStatus: ["ai-status"] as const,
+  policies: ["policies"] as const,
   currentUser: ["current-user"] as const,
 };
 
@@ -44,6 +45,29 @@ export const useAiStatus = () => useQuery({ queryKey: queryKeys.aiStatus, queryF
 
 export const useCurrentUser = () =>
   useQuery({ queryKey: queryKeys.currentUser, queryFn: () => dataSource.getCurrentUser(), staleTime: Infinity });
+
+export const useIsAdmin = () => useCurrentUser().data?.roles.includes("ADMIN") ?? false;
+
+export const usePolicies = () => useQuery({ queryKey: queryKeys.policies, queryFn: () => dataSource.listPolicies() });
+
+export function useSavePolicy() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id?: number; input: PolicyInput }) =>
+      id == null ? dataSource.createPolicy(input) : dataSource.updatePolicy(id, input),
+    onSuccess: () => client.invalidateQueries({ queryKey: queryKeys.policies }),
+  });
+}
+
+export function useDeletePolicy() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => dataSource.deletePolicy(id),
+    onSuccess: () => client.invalidateQueries({ queryKey: queryKeys.policies }),
+  });
+}
+
+export const useReindexPolicies = () => useMutation({ mutationFn: () => dataSource.reindexPolicies() });
 
 function useInvalidateReviews() {
   const client = useQueryClient();

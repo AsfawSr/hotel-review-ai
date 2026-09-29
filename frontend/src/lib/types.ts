@@ -125,3 +125,24 @@ export interface CurrentUser {
   username: string;
   roles: string[];
 }
+
+export interface Policy {
+  id: number;
+  title: string;
+  category: string;
+  content: string;
+  tags: string[];
+  source: string | null;
+  /** yyyy-MM-dd */
+  effectiveDate: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type PolicyInput = Pick<Policy, "title" | "category" | "content" | "tags" | "source" | "effectiveDate" | "active">;
+
+export interface ReindexResult {
+  ragEnabled: boolean;
+  indexed: number;
+}

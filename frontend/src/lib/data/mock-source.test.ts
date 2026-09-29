@@ -71,6 +71,28 @@ describe("mockDataSource", () => {
     await expect(mockDataSource.getReview(999_999)).rejects.toBeInstanceOf(ApiError);
   });
 
+  it("manages policies and uses active ones as review context", async () => {
+    const seeded = await mockDataSource.listPolicies();
+    expect(seeded.length).toBe(8);
+
+    await expect(
+      mockDataSource.createPolicy({ title: "", category: "", content: "", tags: [], source: null, effectiveDate: null, active: true }),
+    ).rejects.toMatchObject({ status: 400, fieldErrors: { title: expect.any(String) } });
+
+    const created = await mockDataSource.createPolicy({
+      title: " Pet Policy ", category: "Front Office", content: "Dogs welcome.", tags: ["pets", "pets"], source: "", effectiveDate: null, active: true,
+    });
+    expect(created).toMatchObject({ id: 9, title: "Pet Policy", tags: ["pets"], source: null });
+
+    const updated = await mockDataSource.updatePolicy(created.id, { ...created, active: false });
+    expect(updated.active).toBe(false);
+    expect(await mockDataSource.reindexPolicies()).toEqual({ ragEnabled: true, indexed: 8 });
+
+    await mockDataSource.deletePolicy(created.id);
+    expect(await mockDataSource.listPolicies()).toHaveLength(8);
+    await expect(mockDataSource.deletePolicy(created.id)).rejects.toMatchObject({ status: 404 });
+  });
+
   it("only accepts the demo credentials", async () => {
     await expect(mockDataSource.login("demo", "wrong")).rejects.toMatchObject({ status: 401 });
     const user = await mockDataSource.login(DEMO_CREDENTIALS.username, DEMO_CREDENTIALS.password);

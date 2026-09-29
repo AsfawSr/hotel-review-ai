@@ -3,6 +3,8 @@ import type {
   CurrentUser,
   DashboardMetrics,
   Page,
+  Policy,
+  ReindexResult,
   Review,
   ReviewDetail,
   ReviewListItem,
@@ -62,6 +64,11 @@ export const apiDataSource: DataSource = {
   submitReview: (submission) => request<Review>("/reviews", { method: "POST", body: JSON.stringify(submission) }),
   retryAnalysis: (id) => request<Review>(`/reviews/${id}/retry`, { method: "POST" }),
   getAiStatus: () => request<AiStatus>("/ai/status"),
+  listPolicies: () => request<Policy[]>("/policies"),
+  createPolicy: (input) => request<Policy>("/policies", { method: "POST", body: JSON.stringify(input) }),
+  updatePolicy: (id, input) => request<Policy>(`/policies/${id}`, { method: "PUT", body: JSON.stringify(input) }),
+  deletePolicy: (id) => request<void>(`/policies/${id}`, { method: "DELETE" }),
+  reindexPolicies: () => request<ReindexResult>("/policies/reindex", { method: "POST" }),
   getCurrentUser: async () => {
     try {
       return await request<CurrentUser>("/auth/me");

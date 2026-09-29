@@ -3,6 +3,9 @@ import type {
   CurrentUser,
   DashboardMetrics,
   Page,
+  Policy,
+  PolicyInput,
+  ReindexResult,
   Review,
   ReviewDetail,
   ReviewListItem,
@@ -20,6 +23,11 @@ export interface DataSource {
   submitReview(submission: ReviewSubmission): Promise<Review>;
   retryAnalysis(id: number): Promise<Review>;
   getAiStatus(): Promise<AiStatus>;
+  listPolicies(): Promise<Policy[]>;
+  createPolicy(input: PolicyInput): Promise<Policy>;
+  updatePolicy(id: number, input: PolicyInput): Promise<Policy>;
+  deletePolicy(id: number): Promise<void>;
+  reindexPolicies(): Promise<ReindexResult>;
   getCurrentUser(): Promise<CurrentUser | null>;
   login(username: string, password: string): Promise<CurrentUser>;
   logout(): Promise<void>;
