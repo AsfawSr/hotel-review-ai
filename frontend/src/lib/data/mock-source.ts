@@ -15,6 +15,7 @@ import type {
   ReviewQuery,
   Sentiment,
   Topic,
+  WeeklyTrend,
 } from "@/lib/types";
 import { SENTIMENTS } from "@/lib/types";
 import { validatePolicy, validateSubmission, validateUser } from "@/lib/validation";
@@ -231,7 +232,7 @@ function topEntry(counts: Record<string, number>): string {
   return top && top[1] > 0 ? top[0] : "N/A";
 }
 
-function buildDashboard(reviews: Review[]): DashboardMetrics {
+function buildDashboard(reviews: Review[], replies: State["replies"]): DashboardMetrics {
   const rated = reviews.filter((r) => r.rating != null);
   const sentimentCounts = Object.fromEntries(SENTIMENTS.map((s) => [s, 0])) as Record<Sentiment, number>;
   const topicCounts: Partial<Record<Topic, number>> = {};
@@ -257,13 +258,56 @@ function buildDashboard(reviews: Review[]): DashboardMetrics {
     sentimentCounts,
     topicCounts: sortedTopics,
     ratingCounts,
+    unansweredNegative: reviews.filter(
+      (r) => r.analysis?.sentiment === "NEGATIVE" && !(replies[r.id] ?? []).some((rev) => rev.status === "SENT"),
+    ).length,
   };
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Monday (UTC) of the ISO week containing `ms`, as yyyy-MM-dd. Mirrors TrendService on the backend. */
+function weekStart(ms: number): string {
+  const date = new Date(ms);
+  const day = (date.getUTCDay() + 6) % 7;
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - day)).toISOString().slice(0, 10);
+}
+
+export function buildTrends(reviews: Review[], weeks: number, now: number): WeeklyTrend[] {
+  const span = Math.min(Math.max(1, weeks), 52);
+  const current = Date.parse(`${weekStart(now)}T00:00:00Z`);
+  const buckets = new Map<string, { total: number; positive: number; neutral: number; negative: number; ratingSum: number; rated: number }>();
+  for (let i = span - 1; i >= 0; i--) {
+    buckets.set(new Date(current - i * 7 * DAY_MS).toISOString().slice(0, 10), { total: 0, positive: 0, neutral: 0, negative: 0, ratingSum: 0, rated: 0 });
+  }
+  for (const r of reviews) {
+    const bucket = buckets.get(weekStart(Date.parse(r.submittedAt)));
+    if (!bucket) continue;
+    bucket.total++;
+    if (r.rating != null) {
+      bucket.ratingSum += r.rating;
+      bucket.rated++;
+    }
+    if (r.analysis?.sentiment === "POSITIVE") bucket.positive++;
+    else if (r.analysis?.sentiment === "NEUTRAL") bucket.neutral++;
+    else if (r.analysis?.sentiment === "NEGATIVE") bucket.negative++;
+  }
+  return [...buckets.entries()].map(([week, b]) => ({
+    weekStart: week,
+    total: b.total,
+    positive: b.positive,
+    neutral: b.neutral,
+    negative: b.negative,
+    averageRating: b.rated ? Math.round((b.ratingSum / b.rated) * 100) / 100 : null,
+  }));
 }
 
 export const mockDataSource: DataSource = {
   mode: "mock",
 
-  getDashboard: () => delay(withState((s) => buildDashboard(s.reviews))),
+  getDashboard: () => delay(withState((s) => buildDashboard(s.reviews, s.replies))),
+
+  getTrends: (weeks) => delay(withState((s) => buildTrends(s.reviews, weeks, Date.now()))),
 
   listReviews: (query) =>
     delay(

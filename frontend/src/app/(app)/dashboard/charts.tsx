@@ -1,10 +1,10 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ComposedChart, Line, Pie, PieChart, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { humanize } from "@/lib/format";
-import type { DashboardMetrics } from "@/lib/types";
+import { formatDate, humanize } from "@/lib/format";
+import type { DashboardMetrics, WeeklyTrend } from "@/lib/types";
 
 const sentimentConfig = {
   count: { label: "Reviews" },
@@ -91,6 +91,54 @@ export function TopicChart({ counts }: { counts: DashboardMetrics["topicCounts"]
               <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
               <Bar dataKey="count" fill="var(--color-count)" radius={4} />
             </BarChart>
+          </ChartContainer>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function TrendChart({ trends }: { trends: WeeklyTrend[] }) {
+  const data = trends.map((t) => ({
+    week: formatDate(t.weekStart).replace(/ \d{4}$/, ""),
+    POSITIVE: t.positive,
+    NEUTRAL: t.neutral,
+    NEGATIVE: t.negative,
+    averageRating: t.averageRating,
+  }));
+  const total = trends.reduce((sum, t) => sum + t.total, 0);
+  const summary = trends
+    .filter((t) => t.total > 0)
+    .map((t) => `week of ${t.weekStart}: ${t.positive} positive, ${t.neutral} neutral, ${t.negative} negative`)
+    .join("; ");
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Weekly trend</CardTitle>
+        <CardDescription>Sentiment per week and average rating (last {trends.length} weeks)</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {total === 0 ? (
+          <EmptyChart />
+        ) : (
+          <ChartContainer
+            config={{ ...sentimentConfig, averageRating: { label: "Avg rating", color: "var(--chart-4)" } }}
+            className="h-[280px] w-full aspect-auto"
+            role="img"
+            aria-label={`Weekly trend: ${summary}`}
+          >
+            <ComposedChart data={data} margin={{ left: 0, right: 8 }}>
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="week" tickLine={false} axisLine={false} interval="preserveStartEnd" />
+              <YAxis yAxisId="count" allowDecimals={false} width={28} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="rating" orientation="right" domain={[1, 5]} width={24} tickLine={false} axisLine={false} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar yAxisId="count" dataKey="POSITIVE" stackId="s" fill="var(--color-POSITIVE)" />
+              <Bar yAxisId="count" dataKey="NEUTRAL" stackId="s" fill="var(--color-NEUTRAL)" />
+              <Bar yAxisId="count" dataKey="NEGATIVE" stackId="s" fill="var(--color-NEGATIVE)" radius={[4, 4, 0, 0]} />
+              <Line yAxisId="rating" dataKey="averageRating" stroke="var(--color-averageRating)" strokeWidth={2} dot={false} connectNulls />
+            </ComposedChart>
           </ChartContainer>
         )}
       </CardContent>

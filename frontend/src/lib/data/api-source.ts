@@ -11,6 +11,7 @@ import type {
   ReviewDetail,
   ReviewListItem,
   ReviewQuery,
+  WeeklyTrend,
 } from "@/lib/types";
 import type { DataSource } from "./data-source";
 import { ApiError } from "./errors";
@@ -61,6 +62,7 @@ function toSearchParams(query: ReviewQuery): string {
 export const apiDataSource: DataSource = {
   mode: "api",
   getDashboard: () => request<DashboardMetrics>("/dashboard"),
+  getTrends: (weeks) => request<WeeklyTrend[]>(`/dashboard/trends?weeks=${weeks}`),
   listReviews: (query) => request<Page<ReviewListItem>>(`/reviews?${toSearchParams(query)}`),
   getReview: (id) => request<ReviewDetail>(`/reviews/${id}`),
   submitReview: (submission) => request<Review>("/reviews", { method: "POST", body: JSON.stringify(submission) }),

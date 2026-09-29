@@ -19,6 +19,9 @@ const IN_FLIGHT_POLL_MS = 2_000;
 
 export const useDashboard = () => useQuery({ queryKey: queryKeys.dashboard, queryFn: () => dataSource.getDashboard() });
 
+export const useTrends = (weeks: number) =>
+  useQuery({ queryKey: [...queryKeys.dashboard, "trends", weeks], queryFn: () => dataSource.getTrends(weeks) });
+
 export const useReviews = (query: ReviewQuery) =>
   useQuery({
     queryKey: queryKeys.reviews(query),

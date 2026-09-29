@@ -141,6 +141,17 @@ describe("mockDataSource", () => {
     await expect(mockDataSource.editReply(reviewId, "late")).rejects.toMatchObject({ status: 409 });
   });
 
+  it("builds weekly trends that match the review data", async () => {
+    const trends = await mockDataSource.getTrends(12);
+    expect(trends).toHaveLength(12);
+    expect(new Date(`${trends[0].weekStart}T00:00:00Z`).getUTCDay()).toBe(1);
+    for (const t of trends) expect(t.positive + t.neutral + t.negative).toBeLessThanOrEqual(t.total);
+    expect(trends.reduce((sum, t) => sum + t.total, 0)).toBeGreaterThan(0);
+
+    const dashboard = await mockDataSource.getDashboard();
+    expect(dashboard.unansweredNegative).toBe(dashboard.sentimentCounts.NEGATIVE);
+  });
+
   it("only accepts the demo credentials", async () => {
     await expect(mockDataSource.login("demo", "wrong")).rejects.toMatchObject({ status: 401 });
     const user = await mockDataSource.login(DEMO_CREDENTIALS.username, DEMO_CREDENTIALS.password);

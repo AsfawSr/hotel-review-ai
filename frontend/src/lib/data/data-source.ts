@@ -15,6 +15,7 @@ import type {
   ReviewSubmission,
   UserCreateInput,
   UserUpdateInput,
+  WeeklyTrend,
 } from "@/lib/types";
 
 export type DataSourceMode = "mock" | "api";
@@ -22,6 +23,7 @@ export type DataSourceMode = "mock" | "api";
 export interface DataSource {
   mode: DataSourceMode;
   getDashboard(): Promise<DashboardMetrics>;
+  getTrends(weeks: number): Promise<WeeklyTrend[]>;
   listReviews(query: ReviewQuery): Promise<Page<ReviewListItem>>;
   getReview(id: number): Promise<ReviewDetail>;
   submitReview(submission: ReviewSubmission): Promise<Review>;

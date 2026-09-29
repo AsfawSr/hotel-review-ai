@@ -1,16 +1,24 @@
 "use client";
 
-import { MessageSquareTextIcon, PlusIcon, StarIcon, TagIcon, TrendingUpIcon } from "lucide-react";
+import { MessageSquareTextIcon, MessageSquareWarningIcon, PlusIcon, StarIcon, TagIcon, TrendingUpIcon } from "lucide-react";
 import Link from "next/link";
 import { RatingStars, SentimentBadge, StatusBadge } from "@/components/badges";
 import { PageHeader } from "@/components/page-header";
 import { QueryError } from "@/components/query-error";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCanWrite, useDashboard, useReviews } from "@/lib/data/hooks";
+import { useCanWrite, useDashboard, useReviews, useTrends } from "@/lib/data/hooks";
 import { formatDateTime, humanize } from "@/lib/format";
-import { RatingChart, SentimentChart, TopicChart } from "./charts";
+import { RatingChart, SentimentChart, TopicChart, TrendChart } from "./charts";
+
+const TREND_WEEKS = 12;
+
+function WeeklyTrendCard() {
+  const { data } = useTrends(TREND_WEEKS);
+  return data ? <TrendChart trends={data} /> : <Skeleton className="h-80" />;
+}
 
 function MetricCard({ label, value, hint, icon: Icon }: { label: string; value: React.ReactNode; hint?: string; icon: React.ElementType }) {
   return (
@@ -96,6 +104,19 @@ export function DashboardView() {
         </div>
       ) : (
         <div className="space-y-4">
+          {data.unansweredNegative > 0 && (
+            <Alert>
+              <MessageSquareWarningIcon />
+              <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
+                <span>
+                  <strong>{data.unansweredNegative}</strong> negative review{data.unansweredNegative === 1 ? " has" : "s have"} not been answered yet.
+                </span>
+                <Link href="/reviews?sentiment=NEGATIVE" className={buttonVariants({ variant: "outline", size: "sm" })}>
+                  Review them
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MetricCard label="Total reviews" value={data.totalReviews} icon={MessageSquareTextIcon} />
             <MetricCard label="Average rating" value={data.averageRating.toFixed(2)} hint="out of 5" icon={StarIcon} />
@@ -113,6 +134,7 @@ export function DashboardView() {
               <TopicChart counts={data.topicCounts} />
             </div>
           </div>
+          <WeeklyTrendCard />
           <div className="grid gap-4 lg:grid-cols-2">
             <RatingChart counts={data.ratingCounts} />
             <RecentReviews />

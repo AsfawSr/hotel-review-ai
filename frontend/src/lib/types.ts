@@ -109,6 +109,18 @@ export interface DashboardMetrics {
   sentimentCounts: Record<Sentiment, number>;
   topicCounts: Partial<Record<Topic, number>>;
   ratingCounts: Record<"1" | "2" | "3" | "4" | "5", number>;
+  /** Negative reviews whose reply has not been marked as sent. */
+  unansweredNegative: number;
+}
+
+export interface WeeklyTrend {
+  /** Monday of the ISO week, yyyy-MM-dd (UTC). */
+  weekStart: string;
+  total: number;
+  positive: number;
+  neutral: number;
+  negative: number;
+  averageRating: number | null;
 }
 
 export interface AiStatus {
