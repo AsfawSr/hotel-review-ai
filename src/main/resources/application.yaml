@@ -31,6 +31,12 @@ spring:
   thymeleaf:
     cache: false
 
+  # CSV review imports (max 500 rows) stay well below this.
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
   # Applies to every RestClient.Builder, including the Ollama client and the AI status check.
   http:
     client:

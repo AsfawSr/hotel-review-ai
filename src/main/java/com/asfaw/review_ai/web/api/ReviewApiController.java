@@ -4,6 +4,7 @@ import com.asfaw.review_ai.model.enums.AnalysisStatus;
 import com.asfaw.review_ai.model.enums.Sentiment;
 import com.asfaw.review_ai.model.enums.Topic;
 import com.asfaw.review_ai.service.AiStatusService;
+import com.asfaw.review_ai.service.ReviewImportService;
 import com.asfaw.review_ai.service.ReviewService;
 import com.asfaw.review_ai.service.TrendService;
 import com.asfaw.review_ai.web.api.dto.DashboardResponse;
@@ -15,6 +16,8 @@ import com.asfaw.review_ai.web.dto.ReviewSubmissionRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,8 +26,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -38,6 +47,7 @@ public class ReviewApiController {
     private final ReviewService reviewService;
     private final AiStatusService aiStatusService;
     private final TrendService trendService;
+    private final ReviewImportService reviewImportService;
 
     @GetMapping("/dashboard")
     public DashboardResponse dashboard() {
@@ -85,6 +95,17 @@ public class ReviewApiController {
     public ReviewResponse retry(@PathVariable Long id) {
         reviewService.queueRetry(id);
         return ReviewResponse.from(reviewService.getReviewDetail(id).review());
+    }
+
+    /** CSV with a header row (guestName, reviewText, rating); each valid row is saved and analyzed. */
+    @PostMapping(path = "/reviews/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ReviewImportService.ImportResult importCsv(@RequestParam("file") MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file is empty");
+        }
+        try (Reader reader = new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8)) {
+            return reviewImportService.importCsv(reader);
+        }
     }
 
     @GetMapping("/ai/status")
